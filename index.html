@@ -1,0 +1,2474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trim Sheet Assistant</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --shell: #0e0e0e;
+      --shell-stripe: #1b1b1b;
+      --panel: #121212;
+      --panel-inner: #171717;
+      --text: #dcdcdc;
+      --muted: #b0b0b0;
+      --accent: #f2f2f2;
+      --border: #3a3a3a;
+      --border-strong: #262626;
+      --shadow: 0 0 16px rgba(0, 0, 0, 0.85);
+      --radius: 2px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Verdana", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    a { color: #9ec8ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 0 12px 32px;
+      position: relative;
+      background: radial-gradient(ellipse at center,
+        rgba(40, 40, 40, 0.2) 0%,
+        rgba(24, 24, 24, 0.65) 45%,
+        rgba(12, 12, 12, 0.82) 65%,
+        rgba(0, 0, 0, 0.95) 100%);
+      overflow: hidden;
+    }
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0, rgba(255, 255, 255, 0.01) 100%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0, rgba(0, 0, 0, 0.02) 100%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.05) 75%, transparent 75%, transparent);
+      background-size: 3px 3px, 7px 7px, 12px 12px;
+      mix-blend-mode: overlay;
+      opacity: 0.38;
+    }
+
+    .frame {
+      width: min(1000px, 100%);
+      background: repeating-linear-gradient(-45deg, var(--shell) 0 22px, var(--shell-stripe) 22px 44px);
+      border: 1px solid #222;
+      border-radius: 4px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      position: relative;
+    }
+
+    .inner {
+      background: linear-gradient(to bottom, #1c1c1c, #0e0e0e 18px, #0e0e0e);
+      border: 1px solid #202020;
+      padding: 18px;
+      border-radius: 2px;
+    }
+
+    .nav-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--panel);
+      box-shadow: inset 0 0 0 1px #0c0c0c;
+      margin-bottom: 10px;
+      text-transform: lowercase;
+      letter-spacing: 0.02em;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .nav-left,
+    .nav-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .nav-strip a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 4px 6px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+    .nav-strip a:hover {
+      color: var(--text);
+      border-color: var(--border);
+      background: rgba(255,255,255,0.05);
+    }
+
+    header.hero {
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      padding: 10px 12px;
+      margin: 0 0 12px;
+      box-shadow: inset 0 0 0 1px #0c0c0c;
+    }
+    .hero h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      letter-spacing: 0.6px;
+      text-transform: none;
+      color: #f6f6f6;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: inset 0 0 0 1px #0c0c0c;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sourcePanel .hint {
+      margin-top: auto;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #d5d9e0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 10px;
+      background: #171717;
+      color: var(--text);
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .zoom-pill {
+      gap: 6px;
+      align-items: center;
+    }
+
+    .zoom-pill input[type="range"] {
+      width: 160px;
+      accent-color: var(--accent);
+    }
+
+    .zoom-label {
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 52px;
+      text-align: right;
+    }
+
+    input[type="file"] {
+      color: var(--text);
+    }
+    select {
+      background: #171717;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 8px;
+      min-width: 120px;
+    }
+
+    .button {
+      background: #1b1b1b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 2px;
+      padding: 7px 12px;
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
+    .button.secondary {
+      background: #151515;
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .button.danger {
+      background: #4a1414;
+      color: #0d0f1f;
+    }
+    .button:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); border-color: #4c4c4c; }
+    .button.secondary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+
+    label.inline {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      background: #171717;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    label.inline input[type="number"] {
+      width: 80px;
+      background: #171717;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px;
+      border-radius: 2px;
+      font-size: 12px;
+    }
+
+    label.inline input[type="number"]:disabled {
+      color: #6b6b6b;
+      border-color: #2a2a2a;
+      background: #0f0f0f;
+    }
+
+    .canvas-shell {
+      position: relative;
+      width: 100%;
+      max-width: 620px;
+      background: #0f0f0f;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      overflow: hidden;
+      padding: 6px;
+      box-shadow: inset 0 0 0 1px #0c0c0c;
+    }
+
+    .canvas-shell.fixed-size {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .canvas-shell.fixed-size canvas {
+      width: auto !important;
+      height: auto !important;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    #sheetShell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #sheetCanvas {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      display: block !important;
+    }
+
+    canvas:not(#sheetCanvas):not(#warpCanvas):not(#sourceCanvas):not(#overlayCanvas):not(#zoomCanvas) {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(48,52,60,0.14), rgba(12,12,12,0.92));
+      border-radius: 2px;
+    }
+
+    #sourceCanvas,
+    #overlayCanvas {
+      background: transparent;
+    }
+
+    #warpCanvas {
+      width: auto !important;
+      height: auto !important;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    canvas.overlay {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      /* overlay handles clicks for corner picking */
+      cursor: crosshair;
+    }
+
+    #sourceShell {
+      position: relative;
+    }
+
+    .zoom-preview {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 150px;
+      height: 150px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: none;
+      pointer-events: auto;
+      z-index: 100;
+      overflow: hidden;
+      cursor: move;
+    }
+
+    .zoom-preview.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .zoom-drag-handle {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255,255,255,0.25);
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      grid-template-rows: repeat(3, 3px);
+      padding: 3px 4px;
+      cursor: grab;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .zoom-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .zoom-drag-handle span {
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 1px;
+    }
+
+    .zoom-preview-canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #zoomCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .upload-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(18, 18, 18, 0.8);
+      z-index: 10;
+    }
+
+    .upload-overlay.hidden {
+      display: none;
+    }
+
+    .upload-overlay label {
+      cursor: pointer;
+      background: var(--panel-inner);
+      border: 2px dashed var(--border);
+      border-radius: 4px;
+      padding: 32px 48px;
+      text-align: center;
+      transition: all 200ms ease;
+    }
+
+    .upload-overlay label:hover {
+      border-color: var(--accent);
+      background: var(--panel);
+      transform: scale(1.02);
+    }
+
+    .upload-overlay label span {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .upload-overlay label small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .preview-area {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .preview-area small { color: var(--muted); }
+
+    .trim-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 8px;
+    }
+
+    .sheet-layout {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-top: 8px;
+    }
+
+    .tile-list-container {
+      flex: 0 0 280px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      padding: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      max-height: 600px;
+      min-height: 300px;
+    }
+
+    .tile-list-header {
+      margin: 0 0 8px;
+      font-size: 13px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #d5d9e0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    #tileList {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      padding-right: 4px;
+      min-height: 0;
+    }
+
+    #tileList::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #tileList::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+    }
+
+    #tileList::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+
+    #tileList::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .tile-pill {
+      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: all 180ms ease;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      min-height: 52px;
+    }
+
+    .tile-pill::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #6b9eff 0%, #4a7fd9 100%);
+      opacity: 0.6;
+    }
+
+    .tile-pill:hover {
+      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateX(2px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .tile-preview-popup {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1000;
+      background: var(--panel);
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+      display: none;
+      max-width: 300px;
+      max-height: 300px;
+    }
+
+    .tile-preview-popup.active {
+      display: block;
+    }
+
+    .tile-preview-popup canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      image-rendering: pixelated;
+      background: repeating-conic-gradient(#1a1a1a 0% 25%, #0f0f0f 0% 50%) 50% / 20px 20px;
+    }
+
+    .tile-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tile-name {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    .tile-details {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'Consolas', 'Monaco', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tile-remove {
+      background: rgba(255, 91, 91, 0.15);
+      border: 1px solid rgba(255, 91, 91, 0.4);
+      color: #ff8080;
+      border-radius: 3px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 140ms ease;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .tile-download {
+      background: rgba(158, 200, 255, 0.12);
+      border: 1px solid rgba(158, 200, 255, 0.35);
+      color: #cde0ff;
+      border-radius: 3px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 140ms ease;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .tile-remove:hover {
+      background: rgba(255, 91, 91, 0.25);
+      border-color: rgba(255, 91, 91, 0.6);
+      color: #ffaaaa;
+      transform: scale(1.05);
+    }
+    .tile-download:hover {
+      background: rgba(158, 200, 255, 0.2);
+      border-color: rgba(158, 200, 255, 0.55);
+      color: #e6f0ff;
+      transform: scale(1.05);
+    }
+
+    .tile-remove:active {
+      transform: scale(0.95);
+    }
+    .tile-download:active {
+      transform: scale(0.95);
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      display: block;
+      margin: 8px 0;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .keyboard-help {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      max-width: 300px;
+      display: none;
+    }
+
+    .keyboard-help.visible {
+      display: block;
+    }
+
+    .keyboard-help h4 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .keyboard-help-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 12px;
+      font-size: 12px;
+    }
+
+    .keyboard-help kbd {
+      background: #1f1f1f;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .keyboard-help-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      transition: all 150ms ease;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .keyboard-help-toggle:hover {
+      background: var(--panel-inner);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* Loading spinner */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-content {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 48px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid;
+      border-radius: 4px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      min-width: 280px;
+      max-width: 400px;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      pointer-events: auto;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: #4ade80;
+    }
+
+    .toast.error {
+      border-left-color: #f87171;
+    }
+
+    .toast.info {
+      border-left-color: #60a5fa;
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-message {
+      color: var(--text);
+      font-size: 13px;
+      flex: 1;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .canvas-shell { max-width: none; }
+      .nav-strip { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .nav-left, .nav-right { width: 100%; }
+      .frame { margin: 12px; }
+      .toast-container { right: 10px; left: 10px; bottom: 60px; }
+      .toast { min-width: auto; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Processing...</div>
+      </div>
+    </div>
+
+    <!-- Toast notifications container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="tilePreviewPopup" class="tile-preview-popup">
+      <canvas id="previewPopupCanvas"></canvas>
+    </div>
+
+    <div class="keyboard-help-toggle" id="keyboardHelpToggle" title="Keyboard shortcuts (?)">?</div>
+    <div class="keyboard-help" id="keyboardHelp">
+      <h4>Keyboard Shortcuts</h4>
+      <div class="keyboard-help-grid">
+        <kbd>Enter</kbd><span>Add tile to sheet</span>
+        <kbd>A</kbd><span>Auto arrange</span>
+        <kbd>D</kbd><span>Download PNG</span>
+        <kbd>J</kbd><span>Export atlas JSON</span>
+        <kbd>G</kbd><span>Toggle grid</span>
+        <kbd>R</kbd><span>Reset corners</span>
+        <kbd>T</kbd><span>Rotate points</span>
+        <kbd>Del</kbd><span>Remove last tile</span>
+        <kbd>Esc</kbd><span>Clear corners</span>
+        <kbd>?</kbd><span>Toggle this help</span>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="inner">
+      <section class="layout">
+        <article class="card" id="sourcePanel">
+          <h3>Upload &amp; mark corners</h3>
+
+          <div class="canvas-shell fixed-size" id="sourceShell">
+            <canvas id="sourceCanvas" width="512" height="512"></canvas>
+            <canvas id="overlayCanvas" class="overlay" width="512" height="512"></canvas>
+            <div id="zoomPreview" class="zoom-preview">
+              <div class="zoom-drag-handle" id="zoomPreviewHandle" title="Drag preview">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="zoom-preview-canvas-container">
+                <canvas id="zoomCanvas" width="150" height="150"></canvas>
+              </div>
+            </div>
+            <div class="upload-overlay" id="uploadOverlay">
+              <label>
+                <span>Click to upload photo</span>
+                <small>or drag and drop</small>
+                <input type="file" accept="image/*" id="fileInput" style="display: none;">
+              </label>
+            </div>
+          </div>
+
+          <br>
+          <div class="controls" id="zoomControls">
+            <div class="pill zoom-pill">
+              <span>Zoom</span>
+              <input type="range" id="zoomSlider" min="1" max="6" step="0.1" value="1">
+              <span id="zoomLabel" class="zoom-label">1.0×</span>
+            </div>
+            <button class="button secondary" id="resetViewBtn">Reset view</button>
+          </div>
+          <div class="controls" id="imageControls">
+            <button class="button secondary" id="resetBtn">Reset corners</button>
+            <button class="button secondary" id="rotatePointsBtn">Rotate points</button>
+            <button class="button secondary" id="removeImageBtn">Remove image</button>
+          </div>
+          <div class="hint" id="cornerHint">Pick corners TL → TR → BR → BL. Drag handles to refine; shift-click to undo. Scroll to zoom; hold Alt or use middle/right drag to pan (PiP follows your cursor).</div>
+        </article>
+
+        <article class="card two-up">
+          <div>
+            <h3>Warp preview</h3>
+
+            <div class="canvas-shell fixed-size" id="warpShell">
+              <canvas id="warpCanvas" width="512" height="512"></canvas>
+            </div>
+            <br>
+              <div class="controls">
+                <button class="button" id="addTileBtn">Add to trim sheet</button>
+                <button class="button secondary" id="warpBtn">Refresh preview</button>
+                <label class="inline">Size (long side px)<input type="number" id="tileBase" value="512" min="32" step="16"></label>
+                <span id="autoSizeLabel" class="info-text">Auto size: 512×512</span>
+                <label class="inline" style="gap:6px;"><input type="checkbox" id="pixelPerfectToggle" checked>Pixel perfect</label>
+              
+              </div>
+              <div class="hint">Preview updates when four points are set. Adjust output size before adding to the sheet.</div>
+            </div>
+          </article>
+      </section>
+
+      <article class="card" style="margin-top: 12px;" id="sheetPanel">
+        <div class="trim-header">
+          <div>
+            <h3 style="margin:0;">Trim sheet</h3>
+          </div>
+          <div class="controls">
+            <label class="inline">Sheet size<input type="number" id="sheetSize" value="1024" min="256" step="64"></label>
+            <label class="inline">Padding<input type="number" id="tilePadding" value="0" min="0" max="32" step="1"></label>
+            <label class="inline">BG
+              <select id="sheetBg">
+                <option value="transparent">Transparent</option>
+                <option value="black">Black</option>
+                <option value="white">White</option>
+              </select>
+            </label>
+            <label class="inline" style="gap:6px;"><input type="checkbox" id="autoSheetSize" checked>Auto size (pow2)</label>
+            <label class="inline" style="gap:6px;"><input type="checkbox" id="rotatePacking" checked>Allow rotation</label>
+            <label class="inline" style="gap:6px;"><input type="checkbox" id="showGrid" checked>Show grid</label>
+            <button class="button secondary" id="autoBtn">Auto arrange</button>
+            <button class="button" id="downloadBtn">Download PNG</button>
+            <button class="button secondary" id="downloadAtlasBtn">Export atlas JSON</button>
+          </div>
+        </div>
+        <div class="sheet-layout">
+          <div class="canvas-shell" id="sheetShell">
+            <canvas id="sheetCanvas" width="1024" height="1024"></canvas>
+          </div>
+          <div class="tile-list-container">
+            <h4 class="tile-list-header">Tiles</h4>
+            <div id="tileList"></div>
+          </div>
+        </div>
+      </article>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sourceCanvas = document.getElementById('sourceCanvas');
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const warpCanvas = document.getElementById('warpCanvas');
+    const sheetCanvas = document.getElementById('sheetCanvas');
+    const zoomPreview = document.getElementById('zoomPreview');
+    const zoomCanvas = document.getElementById('zoomCanvas');
+    const zoomPreviewHandle = document.getElementById('zoomPreviewHandle');
+    const sourceShell = document.getElementById('sourceShell');
+    const zoomControls = document.getElementById('zoomControls');
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomLabel = document.getElementById('zoomLabel');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const overlayCtx = overlayCanvas.getContext('2d');
+    const warpCtx = warpCanvas.getContext('2d');
+    const sheetCtx = sheetCanvas.getContext('2d');
+    const zoomCtx = zoomCanvas.getContext('2d');
+
+    const fileInput = document.getElementById('fileInput');
+    const resetBtn = document.getElementById('resetBtn');
+    const rotatePointsBtn = document.getElementById('rotatePointsBtn');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+    const uploadOverlay = document.getElementById('uploadOverlay');
+    const imageControls = document.getElementById('imageControls');
+    const cornerHint = document.getElementById('cornerHint');
+    const warpBtn = document.getElementById('warpBtn');
+    const addTileBtn = document.getElementById('addTileBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadAtlasBtn = document.getElementById('downloadAtlasBtn');
+    const tileBaseInput = document.getElementById('tileBase');
+    const pixelPerfectToggle = document.getElementById('pixelPerfectToggle');
+    const autoSizeLabel = document.getElementById('autoSizeLabel');
+    const rotatePackingToggle = document.getElementById('rotatePacking');
+    const sheetBgSelect = document.getElementById('sheetBg');
+    const autoSheetSizeToggle = document.getElementById('autoSheetSize');
+    const showGridToggle = document.getElementById('showGrid');
+    const sheetSizeInput = document.getElementById('sheetSize');
+    const tilePaddingInput = document.getElementById('tilePadding');
+    const tileList = document.getElementById('tileList');
+    const tilePreviewPopup = document.getElementById('tilePreviewPopup');
+    const previewPopupCanvas = document.getElementById('previewPopupCanvas');
+    const previewPopupCtx = previewPopupCanvas.getContext('2d');
+    const keyboardHelp = document.getElementById('keyboardHelp');
+    const keyboardHelpToggle = document.getElementById('keyboardHelpToggle');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const toastContainer = document.getElementById('toastContainer');
+
+    const fullImageCanvas = document.createElement('canvas');
+    const fullImageCtx = fullImageCanvas.getContext('2d');
+
+    // Loading and toast utilities
+    function showLoading(message = 'Processing...') {
+      loadingText.textContent = message;
+      loadingOverlay.classList.add('active');
+    }
+
+    function hideLoading() {
+      loadingOverlay.classList.remove('active');
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ⓘ'
+      };
+
+      toast.innerHTML = `
+        <div class="toast-content">
+          <div class="toast-icon">${icons[type] || icons.info}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+      `;
+
+      toastContainer.appendChild(toast);
+
+      // Trigger animation
+      setTimeout(() => toast.classList.add('show'), 10);
+
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    let sourcePixels = null;
+    let sourceSize = { w: 0, h: 0 };
+    let corners = [];
+    let tiles = [];
+    let currentWarp = null;
+    let draggingIdx = null;
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let panOrigin = { x: 0, y: 0 };
+    let lastPointer = null;
+    let isDraggingZoomPreview = false;
+    let zoomPreviewOffset = { x: 0, y: 0 };
+    // View transform tracks how the fitted image is zoomed/panned inside the source shell.
+    let baseScale = 1;
+    let viewScale = 1;
+    let viewOffset = { x: 0, y: 0 };
+
+    const MAX_DISPLAY_W = 512;
+    const MAX_DISPLAY_H = 512;
+    const MIN_VIEW_ZOOM = 1;
+    const MAX_VIEW_ZOOM = 6;
+    let lastPlacements = [];
+    let lastSheetSize = 0;
+
+    fileInput.addEventListener('change', handleFileChange);
+
+    // Drag and drop support - only on uploadOverlay and document.body
+    // Don't add to sourceShell as it would interfere with corner clicking
+    const dropZones = [uploadOverlay, document.body];
+    dropZones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (zone === uploadOverlay) {
+          zone.style.borderColor = 'var(--accent)';
+          zone.style.background = 'rgba(242, 242, 242, 0.05)';
+        }
+      });
+
+      zone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (zone === uploadOverlay) {
+          zone.style.borderColor = '';
+          zone.style.background = '';
+        }
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (zone === uploadOverlay) {
+          zone.style.borderColor = '';
+          zone.style.background = '';
+        }
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+          // Create a fake event object to reuse handleFileChange
+          handleFileChange({ target: { files: [files[0]] } });
+        }
+      });
+    });
+
+    overlayCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    overlayCanvas.addEventListener('mousedown', handlePointerDown);
+    overlayCanvas.addEventListener('mousemove', handlePointerMove);
+    overlayCanvas.addEventListener('mouseup', handlePointerUp);
+    sourceShell.addEventListener('wheel', handleWheelZoom, { passive: false });
+    sourceShell.addEventListener('mouseenter', () => {
+      if (sourcePixels) {
+        const focus = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+        updateZoomPreview(focus.x, focus.y);
+        zoomPreview.classList.add('active');
+      }
+    });
+
+    sourceShell.addEventListener('mouseleave', () => {
+      handlePointerUp();
+      zoomPreview.classList.remove('active');
+    });
+
+    // Zoom preview dragging
+    zoomPreviewHandle.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      isDraggingZoomPreview = true;
+      const rect = zoomPreview.getBoundingClientRect();
+      zoomPreviewOffset.x = e.clientX - rect.left;
+      zoomPreviewOffset.y = e.clientY - rect.top;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDraggingZoomPreview) {
+        const shellRect = sourceShell.getBoundingClientRect();
+
+        let newLeft = e.clientX - shellRect.left - zoomPreviewOffset.x;
+        let newTop = e.clientY - shellRect.top - zoomPreviewOffset.y;
+
+        // Keep within bounds
+        newLeft = Math.max(0, Math.min(newLeft, shellRect.width - zoomPreview.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, shellRect.height - zoomPreview.offsetHeight));
+
+        zoomPreview.style.left = newLeft + 'px';
+        zoomPreview.style.top = newTop + 'px';
+        zoomPreview.style.right = 'auto';
+        zoomPreview.style.bottom = 'auto';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDraggingZoomPreview = false;
+      isPanning = false;
+      draggingIdx = null;
+    });
+
+    // Paste-from-clipboard support (images only)
+    document.addEventListener('paste', (event) => {
+      const target = event.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return; // don't interfere with typing
+      }
+      const files = event.clipboardData?.files;
+      if (!files || !files.length) return;
+      const imageFile = Array.from(files).find((f) => f.type.startsWith('image/'));
+      if (!imageFile) return;
+      loadImageFile(imageFile);
+      showToast('Image pasted from clipboard', 'success');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      corners = [];
+      currentWarp = null;
+      drawOverlay();
+      warpCtx.clearRect(0, 0, warpCanvas.width, warpCanvas.height);
+    });
+
+    rotatePointsBtn.addEventListener('click', () => {
+      if (corners.length === 4) {
+        // Rotate points: 0->1, 1->2, 2->3, 3->0
+        corners.push(corners.shift());
+        drawOverlay();
+        if (corners.length === 4) updatePreview();
+      }
+    });
+
+    removeImageBtn.addEventListener('click', () => {
+      sourcePixels = null;
+      sourceSize = { w: 0, h: 0 };
+      corners = [];
+      currentWarp = null;
+      sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      warpCtx.clearRect(0, 0, warpCanvas.width, warpCanvas.height);
+      zoomPreview.classList.remove('active');
+      viewScale = 1;
+      viewOffset = { x: 0, y: 0 };
+      lastPointer = null;
+      zoomSlider.value = viewScale;
+      updateZoomLabel();
+      fileInput.value = '';
+      updateUIState();
+    });
+
+    zoomSlider.addEventListener('input', () => {
+      if (!sourcePixels) return;
+      const targetScale = parseFloat(zoomSlider.value);
+      const anchor = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+      applyZoom(targetScale, anchor);
+    });
+
+    resetViewBtn.addEventListener('click', () => resetViewTransform());
+
+    warpBtn.addEventListener('click', () => {
+      showLoading('Updating warp preview...');
+      setTimeout(() => {
+        updatePreview();
+        hideLoading();
+      }, 10);
+    });
+
+    tileBaseInput.addEventListener('change', () => updatePreview());
+    pixelPerfectToggle.addEventListener('change', () => {
+      updateSizingLocks();
+      updatePreview();
+    });
+
+    addTileBtn.addEventListener('click', () => {
+      if (!currentWarp) return;
+      const tile = cloneCanvas(currentWarp);
+      tiles.push({ id: crypto.randomUUID(), canvas: tile, w: tile.width, h: tile.height, rotation: 0 });
+      showToast('Tile added to sheet!', 'success');
+      renderTileList();
+      autoArrange();
+    });
+
+    autoBtn.addEventListener('click', () => {
+      showLoading('Packing tiles...');
+      setTimeout(() => {
+        autoArrange();
+        hideLoading();
+        showToast('Tiles arranged successfully!', 'success');
+      }, 10);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      downloadSheet();
+      showToast('Trim sheet downloaded!', 'success');
+    });
+
+    downloadAtlasBtn.addEventListener('click', () => {
+      downloadAtlasJSON();
+      showToast('Atlas JSON exported!', 'success');
+    });
+    sheetSizeInput.addEventListener('change', autoArrange);
+    tilePaddingInput.addEventListener('change', autoArrange);
+    rotatePackingToggle.addEventListener('change', autoArrange);
+    sheetBgSelect.addEventListener('change', autoArrange);
+    autoSheetSizeToggle.addEventListener('change', () => {
+      updateSizingLocks();
+      autoArrange();
+    });
+    showGridToggle.addEventListener('change', autoArrange);
+
+    // Keyboard help toggle
+    keyboardHelpToggle.addEventListener('click', () => {
+      keyboardHelp.classList.toggle('visible');
+    });
+
+    // Close help when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!keyboardHelp.contains(e.target) && !keyboardHelpToggle.contains(e.target)) {
+        keyboardHelp.classList.remove('visible');
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+      switch(e.key.toLowerCase()) {
+        case '?':
+        case '/':
+          // Toggle keyboard help (? key requires shift, / doesn't)
+          if (e.shiftKey || e.key === '?') {
+            e.preventDefault();
+            keyboardHelp.classList.toggle('visible');
+          }
+          break;
+
+        case 'enter':
+          // Add tile to sheet
+          if (currentWarp && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            addTileBtn.click();
+          }
+          break;
+
+        case 'r':
+          // Reset corners
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            resetBtn.click();
+          }
+          break;
+
+        case 'a':
+          // Auto arrange
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            autoBtn.click();
+          }
+          break;
+
+        case 'd':
+          // Download sheet
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            downloadBtn.click();
+          }
+          break;
+
+        case 'j':
+          // Export atlas JSON
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            downloadAtlasBtn.click();
+          }
+          break;
+
+        case 'g':
+          // Toggle grid
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            showGridToggle.checked = !showGridToggle.checked;
+            autoArrange();
+          }
+          break;
+
+        case 't':
+          // Rotate points
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            rotatePointsBtn.click();
+          }
+          break;
+
+        case 'delete':
+        case 'backspace':
+          // Remove last tile (if any)
+          if (tiles.length > 0) {
+            e.preventDefault();
+            tiles.pop();
+            autoArrange();
+          }
+          break;
+
+        case 'escape':
+          // Reset corners
+          if (corners.length > 0) {
+            e.preventDefault();
+            resetBtn.click();
+          }
+          break;
+      }
+    });
+
+    function handleFileChange(event) {
+      const [file] = event.target.files;
+      if (!file) return;
+      loadImageFile(file);
+    }
+
+    function loadImageFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          sourceSize = { w: img.width, h: img.height };
+          fullImageCanvas.width = img.width;
+          fullImageCanvas.height = img.height;
+          fullImageCtx.clearRect(0, 0, img.width, img.height);
+          fullImageCtx.drawImage(img, 0, 0);
+          sourcePixels = fullImageCtx.getImageData(0, 0, img.width, img.height);
+          corners = [];
+          currentWarp = null;
+          lastPointer = null;
+
+          const scale = Math.min(MAX_DISPLAY_W / img.width, MAX_DISPLAY_H / img.height, 1);
+          const dw = Math.round(img.width * scale);
+          const dh = Math.round(img.height * scale);
+          baseScale = dw / img.width;
+          viewScale = 1;
+          viewOffset = { x: 0, y: 0 };
+          zoomSlider.value = viewScale;
+          updateZoomLabel();
+          sourceCanvas.width = dw;
+          sourceCanvas.height = dh;
+          overlayCanvas.width = dw;
+          overlayCanvas.height = dh;
+
+          renderSourceImage();
+          drawOverlay();
+          updateUIState();
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateUIState() {
+      const hasImage = sourcePixels !== null;
+      if (hasImage) {
+        uploadOverlay.classList.add('hidden');
+        imageControls.style.display = 'flex';
+        cornerHint.style.display = 'block';
+        zoomControls.style.display = 'flex';
+        zoomSlider.disabled = false;
+        resetViewBtn.disabled = false;
+      } else {
+        uploadOverlay.classList.remove('hidden');
+        imageControls.style.display = 'none';
+        cornerHint.style.display = 'none';
+        zoomControls.style.display = 'none';
+        zoomSlider.disabled = true;
+        resetViewBtn.disabled = true;
+      }
+      updateSizingLocks();
+    }
+
+    function handlePointerDown(event) {
+      if (!sourcePixels) return;
+      const coord = getSourceCoordsFromEvent(event);
+      if (!coord) return;
+      lastPointer = { x: coord.x, y: coord.y };
+
+      if (event.button === 1 || event.button === 2 || event.altKey) {
+        isPanning = true;
+        panStart = { x: coord.displayX, y: coord.displayY };
+        panOrigin = { x: viewOffset.x, y: viewOffset.y };
+        return;
+      }
+
+      if (event.button !== 0) return;
+
+      if (event.shiftKey) {
+        if (corners.length) {
+          corners.pop();
+          currentWarp = null;
+          drawOverlay();
+          showToast('Corner removed', 'info');
+        }
+        return;
+      }
+
+      const hitIdx = findCornerHit(coord.displayX, coord.displayY);
+      if (hitIdx !== -1) {
+        draggingIdx = hitIdx;
+        corners[hitIdx] = { x: coord.x, y: coord.y };
+        drawOverlay();
+        if (corners.length === 4) updatePreview();
+        return;
+      }
+
+      if (corners.length < 4) {
+        const cornerNames = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+        corners.push({ x: coord.x, y: coord.y });
+        drawOverlay();
+
+        if (corners.length === 4) {
+          showLoading('Generating warp preview...');
+          setTimeout(() => {
+            updatePreview();
+            hideLoading();
+            showToast('All corners placed! Preview ready.', 'success');
+          }, 10);
+        } else {
+          showToast(`Corner ${corners.length}/4 placed (${cornerNames[corners.length - 1]})`, 'info');
+        }
+      }
+    }
+
+    function handlePointerMove(event) {
+      const coord = getSourceCoordsFromEvent(event);
+      if (!coord) return;
+      lastPointer = { x: coord.x, y: coord.y };
+
+      // Always show zoom preview when hovering over image and image is loaded
+      if (sourcePixels) {
+        updateZoomPreview(coord.x, coord.y);
+        zoomPreview.classList.add('active');
+      }
+
+      if (isPanning) {
+        viewOffset.x = panOrigin.x + (coord.displayX - panStart.x);
+        viewOffset.y = panOrigin.y + (coord.displayY - panStart.y);
+        clampViewOffset();
+        renderSourceImage();
+        drawOverlay();
+        return;
+      }
+
+      if (draggingIdx === null || !sourcePixels) return;
+      corners[draggingIdx] = { x: coord.x, y: coord.y };
+      drawOverlay();
+      if (corners.length === 4) updatePreview();
+    }
+
+    function handlePointerUp() {
+      draggingIdx = null;
+      isPanning = false;
+      // Don't hide zoom preview on pointer up
+    }
+
+    function getDisplayScale() {
+      return baseScale * viewScale;
+    }
+
+    function clampViewOffset() {
+      const scale = getDisplayScale();
+      const imgW = sourceSize.w * scale;
+      const imgH = sourceSize.h * scale;
+      const minX = Math.min(0, sourceCanvas.width - imgW);
+      const minY = Math.min(0, sourceCanvas.height - imgH);
+      viewOffset.x = Math.min(0, Math.max(minX, viewOffset.x));
+      viewOffset.y = Math.min(0, Math.max(minY, viewOffset.y));
+    }
+
+    function renderSourceImage() {
+      if (!sourcePixels) return;
+      const scale = getDisplayScale();
+      sourceCtx.setTransform(1, 0, 0, 1, 0, 0);
+      sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+      sourceCtx.imageSmoothingEnabled = viewScale <= 1.1;
+      sourceCtx.save();
+      sourceCtx.setTransform(scale, 0, 0, scale, viewOffset.x, viewOffset.y);
+      sourceCtx.drawImage(fullImageCanvas, 0, 0);
+      sourceCtx.restore();
+    }
+
+    function sourceToDisplay(x, y) {
+      const scale = getDisplayScale();
+      return {
+        x: x * scale + viewOffset.x,
+        y: y * scale + viewOffset.y
+      };
+    }
+
+    function resetViewTransform() {
+      viewScale = 1;
+      viewOffset = { x: 0, y: 0 };
+      zoomSlider.value = viewScale;
+      updateZoomLabel();
+      if (sourcePixels) {
+        renderSourceImage();
+        drawOverlay();
+        if (lastPointer) updateZoomPreview(lastPointer.x, lastPointer.y);
+      }
+    }
+
+    function applyZoom(targetScale, anchor) {
+      if (!sourcePixels) return;
+      const clamped = Math.max(MIN_VIEW_ZOOM, Math.min(MAX_VIEW_ZOOM, targetScale));
+      const displayScale = baseScale * clamped;
+      const focus = anchor || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+      const focusDisplay = sourceToDisplay(focus.x, focus.y);
+      viewScale = clamped;
+      viewOffset.x = focusDisplay.x - focus.x * displayScale;
+      viewOffset.y = focusDisplay.y - focus.y * displayScale;
+      clampViewOffset();
+      zoomSlider.value = viewScale;
+      updateZoomLabel();
+      renderSourceImage();
+      drawOverlay();
+      updateZoomPreview(focus.x, focus.y);
+    }
+
+    function handleWheelZoom(event) {
+      if (!sourcePixels) return;
+      event.preventDefault();
+      const step = event.deltaY > 0 ? -0.2 : 0.2;
+      const coord = getSourceCoordsFromEvent(event);
+      const anchor = coord ? { x: coord.x, y: coord.y } : { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+      applyZoom(viewScale + step, anchor);
+    }
+
+    function updateZoomLabel() {
+      zoomLabel.textContent = `${viewScale.toFixed(2)}×`;
+    }
+
+    function drawOverlay() {
+      overlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+      // Show "next corner" indicator if less than 4 corners
+      if (corners.length < 4 && sourcePixels) {
+        const cornerNames = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+        overlayCtx.fillStyle = 'rgba(100, 200, 255, 0.15)';
+        overlayCtx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        overlayCtx.fillStyle = '#64c8ff';
+        overlayCtx.font = 'bold 16px "Trebuchet MS", "Segoe UI", sans-serif';
+        overlayCtx.textAlign = 'center';
+        overlayCtx.textBaseline = 'middle';
+        overlayCtx.fillText(
+          `Click to place corner ${corners.length + 1}/4 (${cornerNames[corners.length]})`,
+          overlayCanvas.width / 2,
+          20
+        );
+        overlayCtx.textAlign = 'start';
+        overlayCtx.textBaseline = 'alphabetic';
+      }
+
+      if (!corners.length) return;
+
+      const scale = getDisplayScale();
+      const invScale = 1 / scale;
+      overlayCtx.save();
+      overlayCtx.setTransform(scale, 0, 0, scale, viewOffset.x, viewOffset.y);
+
+      // Corner colors: green, blue, orange, red
+      const cornerColors = [
+        { stroke: '#4ade80', fill: 'rgba(74, 222, 128, 0.3)', label: '#4ade80' },  // green
+        { stroke: '#60a5fa', fill: 'rgba(96, 165, 250, 0.3)', label: '#60a5fa' },  // blue
+        { stroke: '#fb923c', fill: 'rgba(251, 146, 60, 0.3)', label: '#fb923c' },  // orange
+        { stroke: '#f87171', fill: 'rgba(248, 113, 113, 0.3)', label: '#f87171' }  // red
+      ];
+
+      // Draw connecting lines between corners with gradient
+      if (corners.length > 1) {
+        for (let i = 0; i < corners.length; i++) {
+          const nextIdx = (i + 1) % corners.length;
+          if (nextIdx === 0 && corners.length < 4) break; // Don't close if not all 4 corners
+
+          const p1 = corners[i];
+          const p2 = corners[nextIdx];
+
+          overlayCtx.strokeStyle = cornerColors[i].stroke;
+          overlayCtx.lineWidth = 3 * invScale;
+          overlayCtx.setLineDash([8 * invScale, 4 * invScale]);
+          overlayCtx.beginPath();
+          overlayCtx.moveTo(p1.x, p1.y);
+          overlayCtx.lineTo(p2.x, p2.y);
+          overlayCtx.stroke();
+          overlayCtx.setLineDash([]);
+        }
+      }
+
+      // Fill the quad if all 4 corners are placed
+      if (corners.length === 4) {
+        overlayCtx.fillStyle = 'rgba(100, 200, 255, 0.08)';
+        overlayCtx.beginPath();
+        corners.forEach((p, idx) => {
+          if (idx === 0) overlayCtx.moveTo(p.x, p.y);
+          else overlayCtx.lineTo(p.x, p.y);
+        });
+        overlayCtx.closePath();
+        overlayCtx.fill();
+      }
+
+      // Draw corner handles with color coding
+      corners.forEach((p, idx) => {
+        const sx = p.x;
+        const sy = p.y;
+        const color = cornerColors[idx];
+
+        // Outer glow
+        overlayCtx.beginPath();
+        overlayCtx.arc(sx, sy, 12 * invScale, 0, Math.PI * 2);
+        overlayCtx.fillStyle = color.fill;
+        overlayCtx.fill();
+
+        // Main circle
+        overlayCtx.beginPath();
+        overlayCtx.arc(sx, sy, 8 * invScale, 0, Math.PI * 2);
+        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        overlayCtx.fill();
+        overlayCtx.strokeStyle = color.stroke;
+        overlayCtx.lineWidth = 3 * invScale;
+        overlayCtx.stroke();
+
+        // Corner number label with background
+        overlayCtx.font = `bold ${18 * invScale}px "Trebuchet MS", "Segoe UI", sans-serif`;
+        overlayCtx.textAlign = 'center';
+        overlayCtx.textBaseline = 'middle';
+
+        // Label background
+        const labelX = sx + 20 * invScale;
+        const labelY = sy - 20 * invScale;
+        const boxSize = 24 * invScale;
+        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        overlayCtx.fillRect(labelX - boxSize / 2, labelY - boxSize / 2, boxSize, boxSize);
+        overlayCtx.strokeStyle = color.stroke;
+        overlayCtx.lineWidth = 2 * invScale;
+        overlayCtx.strokeRect(labelX - boxSize / 2, labelY - boxSize / 2, boxSize, boxSize);
+
+        // Label text
+        overlayCtx.fillStyle = color.label;
+        overlayCtx.fillText(String(idx + 1), labelX, labelY);
+
+        overlayCtx.textAlign = 'start';
+        overlayCtx.textBaseline = 'alphabetic';
+      });
+      overlayCtx.restore();
+    }
+
+    function updateZoomPreview(srcX, srcY) {
+      if (!sourcePixels) return;
+
+      const zoomLevel = 4; // 4x zoom
+      const previewSize = 150;
+      const regionSize = previewSize / zoomLevel; // base region in source pixels
+
+      const srcW = sourceSize.w;
+      const srcH = sourceSize.h;
+      const sampleW = Math.min(regionSize, srcW);
+      const sampleH = Math.min(regionSize, srcH);
+      if (sampleW <= 0 || sampleH <= 0) return;
+
+      const halfW = sampleW / 2;
+      const halfH = sampleH / 2;
+      const startX = Math.max(0, Math.min(srcX - halfW, srcW - sampleW));
+      const startY = Math.max(0, Math.min(srcY - halfH, srcH - sampleH));
+
+      // Clear zoom canvas
+      zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+
+      // Draw zoomed region from full image, filling the preview canvas
+      zoomCtx.imageSmoothingEnabled = false;
+      zoomCtx.drawImage(
+        fullImageCanvas,
+        startX, startY, sampleW, sampleH,
+        0, 0, previewSize, previewSize
+      );
+
+      // Crosshair tracks the cursor inside the sampled region to stay accurate near edges
+      const centerX = ((srcX - startX) / sampleW) * previewSize;
+      const centerY = ((srcY - startY) / sampleH) * previewSize;
+      zoomCtx.strokeStyle = '#ff0066';
+      zoomCtx.lineWidth = 1;
+      zoomCtx.beginPath();
+      zoomCtx.moveTo(centerX - 10, centerY);
+      zoomCtx.lineTo(centerX + 10, centerY);
+      zoomCtx.moveTo(centerX, centerY - 10);
+      zoomCtx.lineTo(centerX, centerY + 10);
+      zoomCtx.stroke();
+
+      // Draw center dot
+      zoomCtx.fillStyle = '#ff0066';
+      zoomCtx.beginPath();
+      zoomCtx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+      zoomCtx.fill();
+    }
+
+    function updatePreview() {
+      if (!sourcePixels || corners.length !== 4) return;
+      let { w, h, aspect } = deriveTileSize();
+      warpCanvas.width = w;
+      warpCanvas.height = h;
+      let warped = warpToCanvas(sourcePixels, sourceSize.w, sourceSize.h, corners, w, h);
+      warpCtx.clearRect(0, 0, w, h);
+      warpCtx.drawImage(warped, 0, 0);
+      currentWarp = warped;
+      autoSizeLabel.textContent = `Auto size: ${w}×${h} (aspect ${aspect.toFixed(2)}:1)`;
+    }
+
+    function warpToCanvas(srcImageData, srcW, srcH, quad, destW, destH) {
+      const srcData = srcImageData.data;
+      const dstCanvas = document.createElement('canvas');
+      dstCanvas.width = destW;
+      dstCanvas.height = destH;
+      const dstCtx = dstCanvas.getContext('2d');
+      const dstImage = dstCtx.createImageData(destW, destH);
+      const dstData = dstImage.data;
+
+      const dstQuad = [
+        { x: 0, y: 0 },
+        { x: destW, y: 0 },
+        { x: destW, y: destH },
+        { x: 0, y: destH }
+      ];
+      const H = computeHomography(quad, dstQuad);
+
+      for (let y = 0; y < destH; y++) {
+        for (let x = 0; x < destW; x++) {
+          const denom = H[2][0] * x + H[2][1] * y + 1;
+          const sx = (H[0][0] * x + H[0][1] * y + H[0][2]) / denom;
+          const sy = (H[1][0] * x + H[1][1] * y + H[1][2]) / denom;
+          const di = (y * destW + x) * 4;
+
+          if (sx >= 0 && sy >= 0 && sx < srcW && sy < srcH) {
+            const sxi = Math.floor(sx);
+            const syi = Math.floor(sy);
+            const si = (syi * srcW + sxi) * 4;
+            dstData[di] = srcData[si];
+            dstData[di + 1] = srcData[si + 1];
+            dstData[di + 2] = srcData[si + 2];
+            dstData[di + 3] = srcData[si + 3];
+          } else {
+            dstData[di] = 0;
+            dstData[di + 1] = 0;
+            dstData[di + 2] = 0;
+            dstData[di + 3] = 0;
+          }
+        }
+      }
+      dstCtx.putImageData(dstImage, 0, 0);
+      return dstCanvas;
+    }
+
+    // Solve homography from destination rectangle to source quad.
+    function computeHomography(srcQuad, dstQuad) {
+      const A = [];
+      const b = [];
+      for (let i = 0; i < 4; i++) {
+        const { x: x1, y: y1 } = dstQuad[i];
+        const { x: x2, y: y2 } = srcQuad[i];
+        A.push([x1, y1, 1, 0, 0, 0, -x1 * x2, -y1 * x2]);
+        b.push(x2);
+        A.push([0, 0, 0, x1, y1, 1, -x1 * y2, -y1 * y2]);
+        b.push(y2);
+      }
+      const h = solveGaussian(A, b);
+      return [
+        [h[0], h[1], h[2]],
+        [h[3], h[4], h[5]],
+        [h[6], h[7], 1]
+      ];
+    }
+
+    // Basic Gaussian elimination for small systems.
+    function solveGaussian(A, b) {
+      const n = A.length;
+      for (let i = 0; i < n; i++) {
+        let maxRow = i;
+        for (let k = i + 1; k < n; k++) {
+          if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+        }
+        [A[i], A[maxRow]] = [A[maxRow], A[i]];
+        [b[i], b[maxRow]] = [b[maxRow], b[i]];
+
+        const pivot = A[i][i];
+        if (Math.abs(pivot) < 1e-12) continue;
+        for (let j = i; j < n; j++) A[i][j] /= pivot;
+        b[i] /= pivot;
+
+        for (let r = 0; r < n; r++) {
+          if (r === i) continue;
+          const factor = A[r][i];
+          for (let c = i; c < n; c++) A[r][c] -= factor * A[i][c];
+          b[r] -= factor * b[i];
+        }
+      }
+      return b;
+    }
+
+    function cloneCanvas(canvas) {
+      const copy = document.createElement('canvas');
+      copy.width = canvas.width;
+      copy.height = canvas.height;
+      copy.getContext('2d').drawImage(canvas, 0, 0);
+      return copy;
+    }
+
+    function autoArrange() {
+      const allowRotate = rotatePackingToggle.checked;
+      const targetSize = Math.max(128, parseInt(sheetSizeInput.value, 10) || 1024);
+      const gap = Math.max(0, parseInt(tilePaddingInput.value, 10) || 0);
+      tiles.forEach((t) => {
+        t.position = null;
+        t.rotation = 0;
+      });
+
+      const tryPack = (size) => packTilesMaxRects(size, allowRotate, tiles, gap);
+
+      let size;
+      let placements;
+
+      if (autoSheetSizeToggle.checked) {
+        size = findAutoSizePow2(targetSize, allowRotate, gap, packTilesMaxRects);
+        sheetSizeInput.value = size;
+        placements = tryPack(size);
+
+        // With auto-size on, greedily shrink by halving until packing fails (prevents canvas staying oversized after padding decreases).
+        const minSide = Math.max(
+          64,
+          tiles.length ? Math.max(...tiles.map((t) => Math.max(t.w, t.h) + gap)) : 0
+        );
+        while (size > minSide && size > 64) {
+          const nextSize = size / 2;
+          if (nextSize < minSide) break;
+          const attempt = tryPack(nextSize);
+          if (!attempt) break;
+          size = nextSize;
+          placements = attempt;
+          sheetSizeInput.value = size;
+        }
+      } else {
+        size = targetSize;
+        sheetSizeInput.value = size;
+        placements = tryPack(size);
+        if (!placements) {
+          const grown = findAutoSizePow2(size * 2, allowRotate, gap, packTilesMaxRects);
+          size = grown;
+          sheetSizeInput.value = size;
+          placements = tryPack(size);
+        }
+      }
+      placements = placements || [];
+      lastPlacements = placements;
+      lastSheetSize = size;
+
+      // MaxRects produces optimal packing - no post-processing needed
+      paintSheetBackground(size, showGridToggle.checked);
+      drawPlacements(placements);
+      renderTileList();
+    }
+
+    function renderTileList() {
+      tileList.innerHTML = '';
+      tiles.forEach((tile, idx) => {
+        const el = document.createElement('div');
+        el.className = 'tile-pill';
+
+        const info = document.createElement('div');
+        info.className = 'tile-info';
+
+        const name = document.createElement('div');
+        name.className = 'tile-name';
+        name.textContent = `Tile ${idx + 1}`;
+
+        const details = document.createElement('div');
+        details.className = 'tile-details';
+        const size = `${tile.w}×${tile.h}`;
+        const pos = tile.position ? ` @ (${Math.round(tile.position.x)}, ${Math.round(tile.position.y)})` : ' (not placed)';
+        const rot = tile.rotation ? ` ↻${tile.rotation}°` : '';
+        details.textContent = `${size}${pos}${rot}`;
+
+        info.appendChild(name);
+        info.appendChild(details);
+
+        // Preview on hover
+        el.addEventListener('mouseenter', (e) => {
+          showTilePreview(tile, e);
+        });
+        el.addEventListener('mousemove', (e) => {
+          updateTilePreviewPosition(e);
+        });
+        el.addEventListener('mouseleave', () => {
+          hideTilePreview();
+        });
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent = '⇩';
+        downloadBtn.title = 'Download tile';
+        downloadBtn.className = 'tile-download';
+        downloadBtn.addEventListener('click', () => downloadTile(tile, idx));
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '✕';
+        removeBtn.className = 'tile-remove';
+        removeBtn.addEventListener('click', () => {
+          tiles = tiles.filter((t) => t.id !== tile.id);
+          autoArrange();
+        });
+
+        el.appendChild(info);
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '6px';
+        actions.appendChild(downloadBtn);
+        actions.appendChild(removeBtn);
+        el.appendChild(actions);
+        tileList.appendChild(el);
+      });
+    }
+
+    function showTilePreview(tile, event) {
+      const maxSize = 280;
+      const scale = Math.min(maxSize / tile.w, maxSize / tile.h, 1);
+      const displayW = Math.round(tile.w * scale);
+      const displayH = Math.round(tile.h * scale);
+
+      previewPopupCanvas.width = displayW;
+      previewPopupCanvas.height = displayH;
+      previewPopupCtx.clearRect(0, 0, displayW, displayH);
+      previewPopupCtx.drawImage(tile.canvas, 0, 0, displayW, displayH);
+
+      tilePreviewPopup.classList.add('active');
+      updateTilePreviewPosition(event);
+    }
+
+    function updateTilePreviewPosition(event) {
+      const offsetX = 20;
+      const offsetY = 20;
+      const x = event.clientX + offsetX;
+      const y = event.clientY + offsetY;
+
+      // Keep within viewport
+      const rect = tilePreviewPopup.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width - 10;
+      const maxY = window.innerHeight - rect.height - 10;
+
+      tilePreviewPopup.style.left = Math.min(x, maxX) + 'px';
+      tilePreviewPopup.style.top = Math.min(y, maxY) + 'px';
+    }
+
+    function hideTilePreview() {
+      tilePreviewPopup.classList.remove('active');
+    }
+
+    function paintSheetBackground(size, withGrid = true) {
+      // Update canvas dimensions first to ensure proper clearing
+      sheetCanvas.width = size;
+      sheetCanvas.height = size;
+
+      // Clear the entire canvas
+      sheetCtx.clearRect(0, 0, size, size);
+
+      const bg = sheetBgSelect.value;
+      if (bg === 'black') {
+        sheetCtx.fillStyle = '#000';
+        sheetCtx.fillRect(0, 0, size, size);
+      } else if (bg === 'white') {
+        sheetCtx.fillStyle = '#fff';
+        sheetCtx.fillRect(0, 0, size, size);
+      } // transparent leaves alpha clear
+
+      if (withGrid) {
+        const gridColor = bg === 'white' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+        sheetCtx.strokeStyle = gridColor;
+        sheetCtx.lineWidth = 1;
+        for (let x = 0; x < size; x += 64) {
+          sheetCtx.beginPath();
+          sheetCtx.moveTo(x + 0.5, 0);
+          sheetCtx.lineTo(x + 0.5, size);
+          sheetCtx.stroke();
+        }
+        for (let y = 0; y < size; y += 64) {
+          sheetCtx.beginPath();
+          sheetCtx.moveTo(0, y + 0.5);
+          sheetCtx.lineTo(size, y + 0.5);
+          sheetCtx.stroke();
+        }
+      }
+    }
+
+    function findAutoSizePow2(minSize, allowRotate, gap, packFn) {
+      const maxDim = tiles.length ? Math.max(...tiles.map((t) => Math.max(t.w, t.h))) : 0;
+      let size = Math.max(minSize, maxDim);
+      size = nextPow2(size);
+      while (size <= 8192) { // safety cap
+        if (packFn(size, allowRotate, tiles, gap)) return size;
+        size *= 2;
+      }
+      return size;
+    }
+
+    function nextPow2(n) {
+      return 2 ** Math.ceil(Math.log2(Math.max(1, n)));
+    }
+
+    // MaxRects bin packing algorithm - Best Short Side Fit heuristic
+    function rectanglesIntersect(a, b) {
+      return !(a.x >= b.x + b.w ||
+               a.x + a.w <= b.x ||
+               a.y >= b.y + b.h ||
+               a.y + a.h <= b.y);
+    }
+
+    function isContainedIn(inner, outer) {
+      return inner.x >= outer.x &&
+             inner.y >= outer.y &&
+             inner.x + inner.w <= outer.x + outer.w &&
+             inner.y + inner.h <= outer.y + outer.h;
+    }
+
+    function splitFreeRect(freeRect, placement, gap) {
+      const newRects = [];
+      const px = placement.x;
+      const py = placement.y;
+      const pw = placement.w + gap;
+      const ph = placement.h + gap;
+      const fx = freeRect.x;
+      const fy = freeRect.y;
+      const fw = freeRect.w;
+      const fh = freeRect.h;
+
+      // LEFT rectangle
+      if (px > fx) {
+        const w = px - fx;
+        if (w > 0) {
+          newRects.push({ x: fx, y: fy, w: w, h: fh });
+        }
+      }
+
+      // RIGHT rectangle
+      if (px + pw < fx + fw) {
+        const w = (fx + fw) - (px + pw);
+        if (w > 0) {
+          newRects.push({ x: px + pw, y: fy, w: w, h: fh });
+        }
+      }
+
+      // TOP rectangle
+      if (py > fy) {
+        const h = py - fy;
+        if (h > 0) {
+          newRects.push({ x: fx, y: fy, w: fw, h: h });
+        }
+      }
+
+      // BOTTOM rectangle
+      if (py + ph < fy + fh) {
+        const h = (fy + fh) - (py + ph);
+        if (h > 0) {
+          newRects.push({ x: fx, y: py + ph, w: fw, h: h });
+        }
+      }
+
+      return newRects;
+    }
+
+    function pruneFreeRects(freeRects) {
+      // Only remove rectangles contained within others
+      // Don't filter by intersection - that's handled by splitting
+      const final = [];
+      for (let i = 0; i < freeRects.length; i++) {
+        let isContained = false;
+        for (let j = 0; j < freeRects.length; j++) {
+          if (i !== j && isContainedIn(freeRects[i], freeRects[j])) {
+            isContained = true;
+            break;
+          }
+        }
+        if (!isContained) {
+          final.push(freeRects[i]);
+        }
+      }
+      return final;
+    }
+
+    function packTilesMaxRects(size, allowRotate, sourceTiles, gap) {
+      const freeRects = [{ x: 0, y: 0, w: size, h: size }];
+      const placements = [];
+
+      // Sort by perimeter descending (better than area for most cases)
+      const tilesToPlace = [...sourceTiles].sort((a, b) => {
+        const perimDiff = (b.w + b.h) - (a.w + a.h);
+        return perimDiff || ((b.w * b.h) - (a.w * a.h));
+      });
+
+      for (const tile of tilesToPlace) {
+        let bestScore = null;
+        let bestPlacement = null;
+        let bestFreeRectIdx = -1;
+
+        const orientations = allowRotate ? [
+          { w: tile.w, h: tile.h, rotation: 0 },
+          { w: tile.h, h: tile.w, rotation: 90 }
+        ] : [
+          { w: tile.w, h: tile.h, rotation: 0 }
+        ];
+
+        for (const orient of orientations) {
+          for (let i = 0; i < freeRects.length; i++) {
+            const rect = freeRects[i];
+
+            // Check if tile + gap fits in this free rectangle
+            if (orient.w + gap > rect.w || orient.h + gap > rect.h) {
+              continue;
+            }
+
+            const leftoverX = rect.w - orient.w - gap;
+            const leftoverY = rect.h - orient.h - gap;
+            const shortSideFit = Math.min(leftoverX, leftoverY);
+            const longSideFit = Math.max(leftoverX, leftoverY);
+
+            const isBetter = !bestScore ||
+                            shortSideFit < bestScore.short ||
+                            (shortSideFit === bestScore.short &&
+                             longSideFit < bestScore.long);
+
+            if (isBetter) {
+              bestScore = { short: shortSideFit, long: longSideFit };
+              bestPlacement = {
+                tile: tile,
+                x: rect.x,
+                y: rect.y,
+                w: orient.w,
+                h: orient.h,
+                rotation: orient.rotation
+              };
+              bestFreeRectIdx = i;
+            }
+
+            if (shortSideFit === 0 && longSideFit === 0) {
+              break;
+            }
+          }
+        }
+
+        if (!bestPlacement) {
+          return null;
+        }
+
+        placements.push(bestPlacement);
+
+        // Remove every free rect that overlaps the placed (padded) area and split it into new candidates
+        const paddedPlacement = {
+          x: bestPlacement.x,
+          y: bestPlacement.y,
+          w: bestPlacement.w + gap,
+          h: bestPlacement.h + gap
+        };
+        let i = 0;
+        while (i < freeRects.length) {
+          const rect = freeRects[i];
+          if (!rectanglesIntersect(rect, paddedPlacement)) {
+            i++;
+            continue;
+          }
+          const splits = splitFreeRect(rect, bestPlacement, gap);
+          freeRects.splice(i, 1);
+          freeRects.push(...splits);
+        }
+
+        const pruned = pruneFreeRects(freeRects);
+        freeRects.length = 0;
+        freeRects.push(...pruned);
+      }
+
+      return placements;
+    }
+
+    function deriveTileSize() {
+      const base = Math.max(16, parseInt(tileBaseInput.value, 10) || 512);
+      if (corners.length !== 4) return { w: base, h: base, aspect: 1 };
+      const top = distance(corners[0], corners[1]);
+      const bottom = distance(corners[3], corners[2]);
+      const left = distance(corners[0], corners[3]);
+      const right = distance(corners[1], corners[2]);
+      const avgW = Math.max(1, (top + bottom) / 2);
+      const avgH = Math.max(1, (left + right) / 2);
+      const aspect = avgW / avgH;
+
+      // Pixel-perfect mode uses measured edge averages so the warp matches source pixel density.
+      if (pixelPerfectToggle.checked) {
+        return { w: Math.round(avgW), h: Math.round(avgH), aspect };
+      }
+
+      let w = base;
+      let h = base;
+      if (aspect >= 1) {
+        w = Math.max(16, Math.round(base));
+        h = Math.max(16, Math.round(base / aspect));
+      } else {
+        h = Math.max(16, Math.round(base));
+        w = Math.max(16, Math.round(base * aspect));
+      }
+      return { w, h, aspect };
+    }
+
+    function updateSizingLocks() {
+      tileBaseInput.disabled = pixelPerfectToggle.checked;
+      sheetSizeInput.disabled = autoSheetSizeToggle.checked;
+    }
+
+    function getSourceCoordsFromEvent(event) {
+      if (!sourceSize.w || !sourceSize.h) return null;
+      const rect = overlayCanvas.getBoundingClientRect();
+      const scaleX = overlayCanvas.width / rect.width;
+      const scaleY = overlayCanvas.height / rect.height;
+      const displayX = (event.clientX - rect.left) * scaleX;
+      const displayY = (event.clientY - rect.top) * scaleY;
+      const displayScale = getDisplayScale();
+      let x = (displayX - viewOffset.x) / displayScale;
+      let y = (displayY - viewOffset.y) / displayScale;
+      x = Math.max(0, Math.min(sourceSize.w - 1, x));
+      y = Math.max(0, Math.min(sourceSize.h - 1, y));
+      return { x, y, displayX, displayY };
+    }
+
+    function findCornerHit(displayX, displayY) {
+      const hitRadius = 12;
+      for (let i = corners.length - 1; i >= 0; i--) {
+        const pt = sourceToDisplay(corners[i].x, corners[i].y);
+        const dx = displayX - pt.x;
+        const dy = displayY - pt.y;
+        if (dx * dx + dy * dy <= hitRadius * hitRadius) return i;
+      }
+      return -1;
+    }
+
+    function drawPlacements(placements) {
+      placements.forEach((p) => {
+        sheetCtx.save();
+        sheetCtx.translate(p.x, p.y);
+        if (p.rotation === 90) {
+          sheetCtx.translate(p.w, 0);
+          sheetCtx.rotate(Math.PI / 2);
+        }
+        sheetCtx.drawImage(p.tile.canvas, 0, 0, p.tile.w, p.tile.h);
+        sheetCtx.restore();
+        p.tile.position = { x: p.x, y: p.y };
+        p.tile.rotation = p.rotation;
+      });
+    }
+
+    function downloadSheet() {
+      if (!lastSheetSize || !lastPlacements.length) {
+        // fallback: just export current canvas
+        triggerDownload(sheetCanvas.toDataURL('image/png'));
+        return;
+      }
+      // Render clean (no grid) to an offscreen canvas.
+      const off = document.createElement('canvas');
+      off.width = lastSheetSize;
+      off.height = lastSheetSize;
+      const offCtx = off.getContext('2d');
+      const bg = sheetBgSelect.value;
+      if (bg === 'black') {
+        offCtx.fillStyle = '#000';
+        offCtx.fillRect(0, 0, off.width, off.height);
+      } else if (bg === 'white') {
+        offCtx.fillStyle = '#fff';
+        offCtx.fillRect(0, 0, off.width, off.height);
+      }
+      lastPlacements.forEach((p) => {
+        offCtx.save();
+        offCtx.translate(p.x, p.y);
+        if (p.rotation === 90) {
+          offCtx.translate(p.w, 0);
+          offCtx.rotate(Math.PI / 2);
+        }
+        offCtx.drawImage(p.tile.canvas, 0, 0, p.tile.w, p.tile.h);
+        offCtx.restore();
+      });
+      triggerDownload(off.toDataURL('image/png'));
+    }
+
+    function triggerDownload(dataUrl, filename = 'trim-sheet.png') {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    }
+
+    function downloadTile(tile, idx) {
+      if (!tile || !tile.canvas) return;
+      const name = `tile-${idx + 1}.png`;
+      const dataUrl = tile.canvas.toDataURL('image/png');
+      triggerDownload(dataUrl, name);
+    }
+
+    function downloadAtlasJSON() {
+      if (!lastSheetSize || !lastPlacements.length) {
+        alert('No tiles placed on the sheet. Add some tiles first!');
+        return;
+      }
+
+      // Generate atlas data compatible with common game engines
+      const atlas = {
+        meta: {
+          app: 'TrimSheetAssist',
+          version: '1.0',
+          image: 'trim-sheet.png',
+          size: { w: lastSheetSize, h: lastSheetSize },
+          scale: '1',
+          format: 'RGBA8888'
+        },
+        frames: {}
+      };
+
+      lastPlacements.forEach((p, idx) => {
+        const tileName = `tile_${idx + 1}`;
+
+        // Handle rotation - if rotated 90°, the source dimensions are swapped
+        const sourceW = p.rotation === 90 ? p.tile.h : p.tile.w;
+        const sourceH = p.rotation === 90 ? p.tile.w : p.tile.h;
+
+        atlas.frames[tileName] = {
+          frame: { x: p.x, y: p.y, w: p.w, h: p.h },
+          rotated: p.rotation === 90,
+          trimmed: false,
+          spriteSourceSize: { x: 0, y: 0, w: sourceW, h: sourceH },
+          sourceSize: { w: sourceW, h: sourceH }
+        };
+      });
+
+      // Convert to JSON and download
+      const jsonStr = JSON.stringify(atlas, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, 'trim-sheet.json');
+      URL.revokeObjectURL(url);
+    }
+
+    function distance(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Seed sheet with empty grid on load.
+    autoArrange();
+    // Set initial UI state (no image uploaded)
+    updateUIState();
+  </script>
+</body>
+</html>
