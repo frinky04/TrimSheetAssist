@@ -395,6 +395,31 @@
       border-radius: 1px;
     }
 
+    .zoom-resize-handle {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      right: 4px;
+      bottom: 4px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 3px;
+      cursor: nwse-resize;
+      display: grid;
+      place-items: center;
+      z-index: 2;
+    }
+
+    .zoom-resize-handle::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid rgba(255,255,255,0.5);
+      border-bottom: 2px solid rgba(255,255,255,0.5);
+      transform: translate(1px, 1px);
+      box-sizing: border-box;
+    }
+
     .zoom-preview-canvas-container {
       flex: 1;
       position: relative;
@@ -924,6 +949,7 @@
                 <span></span>
                 <span></span>
               </div>
+              <div class="zoom-resize-handle" id="zoomResizeHandle" title="Resize preview"></div>
               <div class="zoom-preview-canvas-container">
                 <canvas id="zoomCanvas" width="150" height="150"></canvas>
               </div>
@@ -1020,6 +1046,7 @@
     const zoomPreview = document.getElementById('zoomPreview');
     const zoomCanvas = document.getElementById('zoomCanvas');
     const zoomPreviewHandle = document.getElementById('zoomPreviewHandle');
+    const zoomResizeHandle = document.getElementById('zoomResizeHandle');
     const sourceShell = document.getElementById('sourceShell');
     const zoomControls = document.getElementById('zoomControls');
     const zoomSlider = document.getElementById('zoomSlider');
@@ -1116,11 +1143,13 @@
     let panOrigin = { x: 0, y: 0 };
     let lastPointer = null;
     let isDraggingZoomPreview = false;
+    let isResizingZoomPreview = false;
     let zoomPreviewOffset = { x: 0, y: 0 };
     // View transform tracks how the fitted image is zoomed/panned inside the source shell.
     let baseScale = 1;
     let viewScale = 1;
     let viewOffset = { x: 0, y: 0 };
+    let zoomPreviewSize = 150;
 
     const MAX_DISPLAY_W = 512;
     const MAX_DISPLAY_H = 512;
@@ -1128,6 +1157,8 @@
     const MAX_VIEW_ZOOM = 6;
     let lastPlacements = [];
     let lastSheetSize = 0;
+
+    applyZoomPreviewSize(zoomPreviewSize);
 
     fileInput.addEventListener('change', handleFileChange);
 
@@ -1171,13 +1202,13 @@
     overlayCanvas.addEventListener('mousemove', handlePointerMove);
     overlayCanvas.addEventListener('mouseup', handlePointerUp);
     sourceShell.addEventListener('wheel', handleWheelZoom, { passive: false });
-    sourceShell.addEventListener('mouseenter', () => {
-      if (sourcePixels) {
-        const focus = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
-        updateZoomPreview(focus.x, focus.y);
-        zoomPreview.classList.add('active');
-      }
-    });
+      sourceShell.addEventListener('mouseenter', () => {
+        if (sourcePixels) {
+          const focus = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+          updateZoomPreview(focus.x, focus.y);
+          zoomPreview.classList.add('active');
+        }
+      });
 
     sourceShell.addEventListener('mouseleave', () => {
       handlePointerUp();
@@ -1191,6 +1222,14 @@
       const rect = zoomPreview.getBoundingClientRect();
       zoomPreviewOffset.x = e.clientX - rect.left;
       zoomPreviewOffset.y = e.clientY - rect.top;
+    });
+
+    // Zoom preview resizing (keeps square aspect)
+    let resizeStart = { x: 0, y: 0, size: 150 };
+    zoomResizeHandle.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      isResizingZoomPreview = true;
+      resizeStart = { x: e.clientX, y: e.clientY, size: zoomPreviewSize };
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -1209,10 +1248,18 @@
         zoomPreview.style.right = 'auto';
         zoomPreview.style.bottom = 'auto';
       }
+
+      if (isResizingZoomPreview) {
+        const delta = Math.max(e.clientX - resizeStart.x, e.clientY - resizeStart.y);
+        const next = clamp(resizeStart.size + delta, 100, 360);
+        applyZoomPreviewSize(next);
+        if (lastPointer) updateZoomPreview(lastPointer.x, lastPointer.y);
+      }
     });
 
     document.addEventListener('mouseup', () => {
       isDraggingZoomPreview = false;
+      isResizingZoomPreview = false;
       isPanning = false;
       draggingIdx = null;
     });
@@ -1639,6 +1686,14 @@
       updateZoomPreview(focus.x, focus.y);
     }
 
+    function applyZoomPreviewSize(size) {
+      zoomPreviewSize = size;
+      zoomPreview.style.width = `${size}px`;
+      zoomPreview.style.height = `${size}px`;
+      zoomCanvas.width = size;
+      zoomCanvas.height = size;
+    }
+
     function handleWheelZoom(event) {
       if (!sourcePixels) return;
       event.preventDefault();
@@ -1772,7 +1827,7 @@
       if (!sourcePixels) return;
 
       const zoomLevel = 4; // 4x zoom
-      const previewSize = 150;
+      const previewSize = zoomPreviewSize;
       const regionSize = previewSize / zoomLevel; // base region in source pixels
 
       const srcW = sourceSize.w;
@@ -2464,6 +2519,10 @@
       const dx = a.x - b.x;
       const dy = a.y - b.y;
       return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
     }
 
     // Seed sheet with empty grid on load.
