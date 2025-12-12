@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,10 @@
       --radius: 2px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: "Trebuchet MS", "Verdana", "Segoe UI", sans-serif;
@@ -31,8 +35,14 @@
       line-height: 1.35;
     }
 
-    a { color: #9ec8ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a {
+      color: #9ec8ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
 
     .page {
       min-height: 100vh;
@@ -41,12 +51,13 @@
       padding: 0 12px 32px;
       position: relative;
       background: radial-gradient(ellipse at center,
-        rgba(40, 40, 40, 0.2) 0%,
-        rgba(24, 24, 24, 0.65) 45%,
-        rgba(12, 12, 12, 0.82) 65%,
-        rgba(0, 0, 0, 0.95) 100%);
+          rgba(40, 40, 40, 0.2) 0%,
+          rgba(24, 24, 24, 0.65) 45%,
+          rgba(12, 12, 12, 0.82) 65%,
+          rgba(0, 0, 0, 0.95) 100%);
       overflow: hidden;
     }
+
     .page::before {
       content: "";
       position: absolute;
@@ -92,6 +103,7 @@
       font-size: 12px;
       color: var(--muted);
     }
+
     .nav-left,
     .nav-right {
       display: flex;
@@ -99,6 +111,7 @@
       gap: 12px;
       align-items: center;
     }
+
     .nav-strip a {
       color: var(--muted);
       text-decoration: none;
@@ -107,10 +120,11 @@
       border: 1px solid transparent;
       transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
     }
+
     .nav-strip a:hover {
       color: var(--text);
       border-color: var(--border);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     header.hero {
@@ -120,6 +134,7 @@
       margin: 0 0 12px;
       box-shadow: inset 0 0 0 1px #0c0c0c;
     }
+
     .hero h2 {
       margin: 0 0 6px;
       font-size: 16px;
@@ -127,6 +142,7 @@
       text-transform: none;
       color: #f6f6f6;
     }
+
     .hero p {
       margin: 0;
       color: var(--muted);
@@ -168,7 +184,8 @@
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
+      margin-top: 6px;
     }
 
     .pill {
@@ -180,7 +197,7 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
     .zoom-pill {
@@ -203,6 +220,7 @@
     input[type="file"] {
       color: var(--text);
     }
+
     select {
       background: #171717;
       color: var(--text);
@@ -223,21 +241,31 @@
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
       transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
     }
+
     .button.secondary {
       background: #151515;
       color: var(--text);
       border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
+
     .button.danger {
       background: #4a1414;
       color: #0d0f1f;
     }
-    .button:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); border-color: #4c4c4c; }
-    .button.secondary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-color: #4c4c4c;
+    }
+
+    .button.secondary:hover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
 
     label.inline {
       display: inline-flex;
@@ -249,8 +277,9 @@
       border: 1px solid var(--border);
       border-radius: 2px;
       padding: 6px 10px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
+
     label.inline input[type="number"] {
       width: 80px;
       background: #171717;
@@ -314,7 +343,7 @@
       width: 100%;
       height: auto;
       display: block;
-      background: radial-gradient(120% 120% at 20% 20%, rgba(48,52,60,0.14), rgba(12,12,12,0.92));
+      background: radial-gradient(120% 120% at 20% 20%, rgba(48, 52, 60, 0.14), rgba(12, 12, 12, 0.92));
       border-radius: 2px;
     }
 
@@ -330,6 +359,7 @@
       max-height: 100%;
       object-fit: contain;
     }
+
     canvas.overlay {
       position: absolute;
       left: 50%;
@@ -347,77 +377,22 @@
       position: absolute;
       bottom: 10px;
       right: 10px;
-      width: 150px;
-      height: 150px;
+      width: 100px;
+      height: 100px;
       border: none;
       border-radius: 4px;
       background: transparent;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       display: none;
-      pointer-events: auto;
+      pointer-events: none;
       z-index: 100;
       overflow: hidden;
-      cursor: move;
+      transition: left 0.15s ease-out, top 0.15s ease-out, bottom 0.15s ease-out, right 0.15s ease-out;
     }
 
     .zoom-preview.active {
       display: flex;
       flex-direction: column;
-    }
-
-    .zoom-drag-handle {
-      position: absolute;
-      top: 6px;
-      left: 6px;
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1px solid rgba(255,255,255,0.25);
-      display: grid;
-      place-items: center;
-      gap: 2px;
-      grid-template-rows: repeat(3, 3px);
-      padding: 3px 4px;
-      cursor: grab;
-      user-select: none;
-      z-index: 1;
-    }
-
-    .zoom-drag-handle:active {
-      cursor: grabbing;
-    }
-
-    .zoom-drag-handle span {
-      width: 100%;
-      height: 2px;
-      background: rgba(255,255,255,0.5);
-      border-radius: 1px;
-    }
-
-    .zoom-resize-handle {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      right: 4px;
-      bottom: 4px;
-      background: rgba(0, 0, 0, 0.65);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 3px;
-      cursor: nwse-resize;
-      display: grid;
-      place-items: center;
-      z-index: 2;
-    }
-
-    .zoom-resize-handle::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-right: 2px solid rgba(255,255,255,0.5);
-      border-bottom: 2px solid rgba(255,255,255,0.5);
-      transform: translate(1px, 1px);
-      box-sizing: border-box;
     }
 
     .zoom-preview-canvas-container {
@@ -490,7 +465,10 @@
       flex-wrap: wrap;
       align-items: flex-start;
     }
-    .preview-area small { color: var(--muted); }
+
+    .preview-area small {
+      color: var(--muted);
+    }
 
     .trim-header {
       display: flex;
@@ -499,7 +477,7 @@
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       padding-bottom: 8px;
     }
 
@@ -512,11 +490,11 @@
 
     .tile-list-container {
       flex: 0 0 280px;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-strong);
       border-radius: 2px;
       padding: 10px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
       display: flex;
       flex-direction: column;
       max-height: 600px;
@@ -530,7 +508,7 @@
       text-transform: uppercase;
       color: #d5d9e0;
       padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     #tileList {
@@ -549,21 +527,22 @@
     }
 
     #tileList::-webkit-scrollbar-track {
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.3);
       border-radius: 4px;
     }
 
     #tileList::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       border-radius: 4px;
     }
 
     #tileList::-webkit-scrollbar-thumb:hover {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
     }
+
     .tile-pill {
-      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 4px;
       padding: 10px 12px;
       font-size: 12px;
@@ -572,7 +551,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       transition: all 180ms ease;
       position: relative;
       overflow: hidden;
@@ -592,10 +571,10 @@
     }
 
     .tile-pill:hover {
-      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%);
-      border-color: rgba(255,255,255,0.15);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.04) 100%);
+      border-color: rgba(255, 255, 255, 0.15);
       transform: translateX(2px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     .tile-preview-popup {
@@ -661,6 +640,7 @@
       flex-shrink: 0;
       line-height: 1;
     }
+
     .tile-download {
       background: rgba(158, 200, 255, 0.12);
       border: 1px solid rgba(158, 200, 255, 0.35);
@@ -681,6 +661,7 @@
       color: #ffaaaa;
       transform: scale(1.05);
     }
+
     .tile-download:hover {
       background: rgba(158, 200, 255, 0.2);
       border-color: rgba(158, 200, 255, 0.55);
@@ -691,6 +672,7 @@
     .tile-remove:active {
       transform: scale(0.95);
     }
+
     .tile-download:active {
       transform: scale(0.95);
     }
@@ -702,6 +684,7 @@
       display: block;
       margin: 8px 0;
     }
+
     .hint {
       color: var(--muted);
       font-size: 13px;
@@ -749,7 +732,7 @@
       font-family: 'Consolas', 'Monaco', monospace;
       font-size: 11px;
       color: var(--accent);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .keyboard-help-toggle {
@@ -819,7 +802,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .loading-text {
@@ -890,16 +875,43 @@
     }
 
     @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
-      .canvas-shell { max-width: none; }
-      .nav-strip { flex-direction: column; align-items: flex-start; gap: 6px; }
-      .nav-left, .nav-right { width: 100%; }
-      .frame { margin: 12px; }
-      .toast-container { right: 10px; left: 10px; bottom: 60px; }
-      .toast { min-width: auto; max-width: none; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-shell {
+        max-width: none;
+      }
+
+      .nav-strip {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .nav-left,
+      .nav-right {
+        width: 100%;
+      }
+
+      .frame {
+        margin: 12px;
+      }
+
+      .toast-container {
+        right: 10px;
+        left: 10px;
+        bottom: 60px;
+      }
+
+      .toast {
+        min-width: auto;
+        max-width: none;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="page">
     <!-- Loading overlay -->
@@ -936,104 +948,103 @@
 
     <div class="frame">
       <div class="inner">
-      <section class="layout">
-        <article class="card" id="sourcePanel">
-          <h3>Upload &amp; mark corners</h3>
+        <section class="layout">
+          <article class="card" id="sourcePanel">
+            <h3>Upload &amp; mark corners</h3>
 
-          <div class="canvas-shell fixed-size" id="sourceShell">
-            <canvas id="sourceCanvas" width="512" height="512"></canvas>
-            <canvas id="overlayCanvas" class="overlay" width="512" height="512"></canvas>
-            <div id="zoomPreview" class="zoom-preview">
-              <div class="zoom-drag-handle" id="zoomPreviewHandle" title="Drag preview">
-                <span></span>
-                <span></span>
-                <span></span>
+            <div class="canvas-shell fixed-size" id="sourceShell">
+              <canvas id="sourceCanvas" width="512" height="512"></canvas>
+              <canvas id="overlayCanvas" class="overlay" width="512" height="512"></canvas>
+              <div id="zoomPreview" class="zoom-preview">
+                <div class="zoom-preview-canvas-container">
+                  <canvas id="zoomCanvas" width="100" height="100"></canvas>
+                </div>
               </div>
-              <div class="zoom-resize-handle" id="zoomResizeHandle" title="Resize preview"></div>
-              <div class="zoom-preview-canvas-container">
-                <canvas id="zoomCanvas" width="150" height="150"></canvas>
+              <div class="upload-overlay" id="uploadOverlay">
+                <label>
+                  <span>Click to upload photo</span>
+                  <small>or drag and drop</small>
+                  <input type="file" accept="image/*" id="fileInput" style="display: none;">
+                </label>
               </div>
             </div>
-            <div class="upload-overlay" id="uploadOverlay">
-              <label>
-                <span>Click to upload photo</span>
-                <small>or drag and drop</small>
-                <input type="file" accept="image/*" id="fileInput" style="display: none;">
-              </label>
+            <div class="controls" id="zoomControls">
+              <div class="pill zoom-pill">
+                <span>Zoom</span>
+                <input type="range" id="zoomSlider" min="1" max="6" step="0.1" value="1">
+                <span id="zoomLabel" class="zoom-label">1.0×</span>
+              </div>
+              <button class="button secondary" id="resetViewBtn">Reset view</button>
             </div>
-          </div>
-
-          <br>
-          <div class="controls" id="zoomControls">
-            <div class="pill zoom-pill">
-              <span>Zoom</span>
-              <input type="range" id="zoomSlider" min="1" max="6" step="0.1" value="1">
-              <span id="zoomLabel" class="zoom-label">1.0×</span>
+            <div class="controls" id="imageControls">
+              <button class="button secondary" id="resetBtn">Reset corners</button>
+              <button class="button secondary" id="rotatePointsBtn">Rotate points</button>
+              <button class="button secondary" id="removeImageBtn">Remove image</button>
             </div>
-            <button class="button secondary" id="resetViewBtn">Reset view</button>
-          </div>
-          <div class="controls" id="imageControls">
-            <button class="button secondary" id="resetBtn">Reset corners</button>
-            <button class="button secondary" id="rotatePointsBtn">Rotate points</button>
-            <button class="button secondary" id="removeImageBtn">Remove image</button>
-          </div>
-          <div class="hint" id="cornerHint">Pick corners TL → TR → BR → BL. Drag handles to refine; shift-click to undo. Scroll to zoom; hold Alt or use middle/right drag to pan (PiP follows your cursor).</div>
-        </article>
+            <div class="hint" id="cornerHint">Pick corners TL → TR → BR → BL. Drag handles to refine; shift-click to
+              undo. Scroll to zoom; hold Alt or use middle/right drag to pan (PiP dodges your cursor).</div>
+          </article>
 
-        <article class="card two-up">
-          <div>
-            <h3>Warp preview</h3>
+          <article class="card two-up">
+            <div>
+              <h3>Warp preview</h3>
 
-            <div class="canvas-shell fixed-size" id="warpShell">
-              <canvas id="warpCanvas" width="512" height="512"></canvas>
-            </div>
-            <br>
+              <div class="canvas-shell fixed-size" id="warpShell">
+                <canvas id="warpCanvas" width="512" height="512"></canvas>
+              </div>
               <div class="controls">
                 <button class="button" id="addTileBtn">Add to trim sheet</button>
                 <button class="button secondary" id="warpBtn">Refresh preview</button>
-                <label class="inline">Size (long side px)<input type="number" id="tileBase" value="512" min="32" step="16"></label>
+                <label class="inline">Size (long side px)<input type="number" id="tileBase" value="512" min="32"
+                    step="16"></label>
                 <span id="autoSizeLabel" class="info-text">Auto size: 512×512</span>
-                <label class="inline" style="gap:6px;"><input type="checkbox" id="pixelPerfectToggle" checked>Pixel perfect</label>
-              
+                <label class="inline" style="gap:6px;"><input type="checkbox" id="pixelPerfectToggle" checked>Pixel
+                  perfect</label>
+
               </div>
-              <div class="hint">Preview updates when four points are set. Adjust output size before adding to the sheet.</div>
+              <div class="hint">Preview updates when four points are set. Adjust output size before adding to the sheet.
+              </div>
             </div>
           </article>
-      </section>
+        </section>
 
-      <article class="card" style="margin-top: 12px;" id="sheetPanel">
-        <div class="trim-header">
-          <div>
-            <h3 style="margin:0;">Trim sheet</h3>
+        <article class="card" style="margin-top: 12px;" id="sheetPanel">
+          <div class="trim-header">
+            <div>
+              <h3 style="margin:0;">Trim sheet</h3>
+            </div>
+            <div class="controls">
+              <label class="inline">Sheet size<input type="number" id="sheetSize" value="1024" min="256"
+                  step="64"></label>
+              <label class="inline">Padding<input type="number" id="tilePadding" value="0" min="0" max="32"
+                  step="1"></label>
+              <label class="inline">BG
+                <select id="sheetBg">
+                  <option value="transparent">Transparent</option>
+                  <option value="black">Black</option>
+                  <option value="white">White</option>
+                </select>
+              </label>
+              <label class="inline" style="gap:6px;"><input type="checkbox" id="autoSheetSize" checked>Auto size
+                (pow2)</label>
+              <label class="inline" style="gap:6px;"><input type="checkbox" id="rotatePacking" checked>Allow
+                rotation</label>
+              <label class="inline" style="gap:6px;"><input type="checkbox" id="showGrid" checked>Show grid</label>
+              <button class="button secondary" id="autoBtn">Auto arrange</button>
+              <button class="button" id="downloadBtn">Download PNG</button>
+              <button class="button secondary" id="downloadAtlasBtn">Export atlas JSON</button>
+            </div>
           </div>
-          <div class="controls">
-            <label class="inline">Sheet size<input type="number" id="sheetSize" value="1024" min="256" step="64"></label>
-            <label class="inline">Padding<input type="number" id="tilePadding" value="0" min="0" max="32" step="1"></label>
-            <label class="inline">BG
-              <select id="sheetBg">
-                <option value="transparent">Transparent</option>
-                <option value="black">Black</option>
-                <option value="white">White</option>
-              </select>
-            </label>
-            <label class="inline" style="gap:6px;"><input type="checkbox" id="autoSheetSize" checked>Auto size (pow2)</label>
-            <label class="inline" style="gap:6px;"><input type="checkbox" id="rotatePacking" checked>Allow rotation</label>
-            <label class="inline" style="gap:6px;"><input type="checkbox" id="showGrid" checked>Show grid</label>
-            <button class="button secondary" id="autoBtn">Auto arrange</button>
-            <button class="button" id="downloadBtn">Download PNG</button>
-            <button class="button secondary" id="downloadAtlasBtn">Export atlas JSON</button>
+          <div class="sheet-layout">
+            <div class="canvas-shell" id="sheetShell">
+              <canvas id="sheetCanvas" width="1024" height="1024"></canvas>
+            </div>
+            <div class="tile-list-container">
+              <h4 class="tile-list-header">Tiles</h4>
+              <div id="tileList"></div>
+            </div>
           </div>
-        </div>
-        <div class="sheet-layout">
-          <div class="canvas-shell" id="sheetShell">
-            <canvas id="sheetCanvas" width="1024" height="1024"></canvas>
-          </div>
-          <div class="tile-list-container">
-            <h4 class="tile-list-header">Tiles</h4>
-            <div id="tileList"></div>
-          </div>
-        </div>
-      </article>
+        </article>
       </div>
     </div>
   </div>
@@ -1045,8 +1056,6 @@
     const sheetCanvas = document.getElementById('sheetCanvas');
     const zoomPreview = document.getElementById('zoomPreview');
     const zoomCanvas = document.getElementById('zoomCanvas');
-    const zoomPreviewHandle = document.getElementById('zoomPreviewHandle');
-    const zoomResizeHandle = document.getElementById('zoomResizeHandle');
     const sourceShell = document.getElementById('sourceShell');
     const zoomControls = document.getElementById('zoomControls');
     const zoomSlider = document.getElementById('zoomSlider');
@@ -1142,14 +1151,11 @@
     let panStart = { x: 0, y: 0 };
     let panOrigin = { x: 0, y: 0 };
     let lastPointer = null;
-    let isDraggingZoomPreview = false;
-    let isResizingZoomPreview = false;
-    let zoomPreviewOffset = { x: 0, y: 0 };
     // View transform tracks how the fitted image is zoomed/panned inside the source shell.
     let baseScale = 1;
     let viewScale = 1;
     let viewOffset = { x: 0, y: 0 };
-    let zoomPreviewSize = 150;
+    let zoomPreviewSize = 100;
 
     const MAX_DISPLAY_W = 512;
     const MAX_DISPLAY_H = 512;
@@ -1202,64 +1208,20 @@
     overlayCanvas.addEventListener('mousemove', handlePointerMove);
     overlayCanvas.addEventListener('mouseup', handlePointerUp);
     sourceShell.addEventListener('wheel', handleWheelZoom, { passive: false });
-      sourceShell.addEventListener('mouseenter', () => {
-        if (sourcePixels) {
-          const focus = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
-          updateZoomPreview(focus.x, focus.y);
-          zoomPreview.classList.add('active');
-        }
-      });
+    sourceShell.addEventListener('mouseenter', () => {
+      if (sourcePixels) {
+        const focus = lastPointer || { x: sourceSize.w / 2, y: sourceSize.h / 2 };
+        updateZoomPreview(focus.x, focus.y);
+        zoomPreview.classList.add('active');
+      }
+    });
 
     sourceShell.addEventListener('mouseleave', () => {
       handlePointerUp();
       zoomPreview.classList.remove('active');
     });
 
-    // Zoom preview dragging
-    zoomPreviewHandle.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      isDraggingZoomPreview = true;
-      const rect = zoomPreview.getBoundingClientRect();
-      zoomPreviewOffset.x = e.clientX - rect.left;
-      zoomPreviewOffset.y = e.clientY - rect.top;
-    });
-
-    // Zoom preview resizing (keeps square aspect)
-    let resizeStart = { x: 0, y: 0, size: 150 };
-    zoomResizeHandle.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      isResizingZoomPreview = true;
-      resizeStart = { x: e.clientX, y: e.clientY, size: zoomPreviewSize };
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (isDraggingZoomPreview) {
-        const shellRect = sourceShell.getBoundingClientRect();
-
-        let newLeft = e.clientX - shellRect.left - zoomPreviewOffset.x;
-        let newTop = e.clientY - shellRect.top - zoomPreviewOffset.y;
-
-        // Keep within bounds
-        newLeft = Math.max(0, Math.min(newLeft, shellRect.width - zoomPreview.offsetWidth));
-        newTop = Math.max(0, Math.min(newTop, shellRect.height - zoomPreview.offsetHeight));
-
-        zoomPreview.style.left = newLeft + 'px';
-        zoomPreview.style.top = newTop + 'px';
-        zoomPreview.style.right = 'auto';
-        zoomPreview.style.bottom = 'auto';
-      }
-
-      if (isResizingZoomPreview) {
-        const delta = Math.max(e.clientX - resizeStart.x, e.clientY - resizeStart.y);
-        const next = clamp(resizeStart.size + delta, 100, 360);
-        applyZoomPreviewSize(next);
-        if (lastPointer) updateZoomPreview(lastPointer.x, lastPointer.y);
-      }
-    });
-
     document.addEventListener('mouseup', () => {
-      isDraggingZoomPreview = false;
-      isResizingZoomPreview = false;
       isPanning = false;
       draggingIdx = null;
     });
@@ -1389,7 +1351,7 @@
       // Don't trigger shortcuts when typing in inputs
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
-      switch(e.key.toLowerCase()) {
+      switch (e.key.toLowerCase()) {
         case '?':
         case '/':
           // Toggle keyboard help (? key requires shift, / doesn't)
@@ -1591,6 +1553,35 @@
       }
     }
 
+    function dodgeZoomPreview(mouseX, mouseY) {
+      const shellRect = sourceShell.getBoundingClientRect();
+      const previewRect = zoomPreview.getBoundingClientRect();
+
+      // Calculate distance from mouse to preview center
+      const previewCenterX = previewRect.left + previewRect.width / 2;
+      const previewCenterY = previewRect.top + previewRect.height / 2;
+      const distX = mouseX - previewCenterX;
+      const distY = mouseY - previewCenterY;
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      // Dodge threshold: preview size + 40px margin
+      const dodgeDistance = zoomPreviewSize + 40;
+
+      if (distance < dodgeDistance) {
+        // Determine which corner to move to (opposite to mouse quadrant)
+        const mouseRelX = mouseX - shellRect.left;
+        const mouseRelY = mouseY - shellRect.top;
+        const inLeftHalf = mouseRelX < shellRect.width / 2;
+        const inTopHalf = mouseRelY < shellRect.height / 2;
+
+        // Move to opposite corner
+        zoomPreview.style.left = inLeftHalf ? 'auto' : '10px';
+        zoomPreview.style.right = inLeftHalf ? '10px' : 'auto';
+        zoomPreview.style.top = inTopHalf ? 'auto' : '10px';
+        zoomPreview.style.bottom = inTopHalf ? '10px' : 'auto';
+      }
+    }
+
     function handlePointerMove(event) {
       const coord = getSourceCoordsFromEvent(event);
       if (!coord) return;
@@ -1600,6 +1591,7 @@
       if (sourcePixels) {
         updateZoomPreview(coord.x, coord.y);
         zoomPreview.classList.add('active');
+        dodgeZoomPreview(event.clientX, event.clientY);
       }
 
       if (isPanning) {
@@ -2182,16 +2174,16 @@
     // MaxRects bin packing algorithm - Best Short Side Fit heuristic
     function rectanglesIntersect(a, b) {
       return !(a.x >= b.x + b.w ||
-               a.x + a.w <= b.x ||
-               a.y >= b.y + b.h ||
-               a.y + a.h <= b.y);
+        a.x + a.w <= b.x ||
+        a.y >= b.y + b.h ||
+        a.y + a.h <= b.y);
     }
 
     function isContainedIn(inner, outer) {
       return inner.x >= outer.x &&
-             inner.y >= outer.y &&
-             inner.x + inner.w <= outer.x + outer.w &&
-             inner.y + inner.h <= outer.y + outer.h;
+        inner.y >= outer.y &&
+        inner.x + inner.w <= outer.x + outer.w &&
+        inner.y + inner.h <= outer.y + outer.h;
     }
 
     function splitFreeRect(freeRect, placement, gap) {
@@ -2296,9 +2288,9 @@
             const longSideFit = Math.max(leftoverX, leftoverY);
 
             const isBetter = !bestScore ||
-                            shortSideFit < bestScore.short ||
-                            (shortSideFit === bestScore.short &&
-                             longSideFit < bestScore.long);
+              shortSideFit < bestScore.short ||
+              (shortSideFit === bestScore.short &&
+                longSideFit < bestScore.long);
 
             if (isBetter) {
               bestScore = { short: shortSideFit, long: longSideFit };
@@ -2531,4 +2523,5 @@
     updateUIState();
   </script>
 </body>
+
 </html>
