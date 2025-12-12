@@ -1811,45 +1811,36 @@
         overlayCtx.textBaseline = 'alphabetic';
       });
 
-      // Draw "UP" arrow in center of quad when all 4 corners are placed
+      // Draw triangle "UP" indicator integrated with perspective
       if (corners.length === 4) {
-        // Calculate center of quad
-        const centerX = (corners[0].x + corners[1].x + corners[2].x + corners[3].x) / 4;
-        const centerY = (corners[0].y + corners[1].y + corners[2].y + corners[3].y) / 4;
-        const arrowSize = 20 * invScale;
+        // Helper function to interpolate between two points
+        const lerp = (p1, p2, t) => ({
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        });
 
-        // Arrow pointing up
-        overlayCtx.save();
-        overlayCtx.translate(centerX, centerY);
+        // Triangle pointing up: top point at center of top edge, base at 1/3 down
+        const topPoint = lerp(corners[0], corners[1], 0.5);
 
-        // Calculate rotation based on top edge (corners 0 to 1)
-        const dx = corners[1].x - corners[0].x;
-        const dy = corners[1].y - corners[0].y;
-        const angle = Math.atan2(dy, dx) - Math.PI / 2;
-        overlayCtx.rotate(angle);
+        // Get left and right points of triangle base at 1/3 down the quad
+        const leftThird = lerp(corners[0], corners[3], 0.33);
+        const rightThird = lerp(corners[1], corners[2], 0.33);
 
-        // Draw arrow background
-        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        // Base corners are 1/3 in from the sides
+        const baseLeft = lerp(leftThird, lerp(corners[0], corners[1], 0.5), 0.33);
+        const baseRight = lerp(rightThird, lerp(corners[0], corners[1], 0.5), 0.33);
+
+        // Draw filled triangle
+        overlayCtx.fillStyle = 'rgba(255, 105, 180, 0.6)';
+        overlayCtx.strokeStyle = 'rgba(255, 105, 180, 1)';
+        overlayCtx.lineWidth = 2 * invScale;
         overlayCtx.beginPath();
-        overlayCtx.moveTo(0, -arrowSize);
-        overlayCtx.lineTo(-arrowSize * 0.5, arrowSize * 0.3);
-        overlayCtx.lineTo(arrowSize * 0.5, arrowSize * 0.3);
+        overlayCtx.moveTo(topPoint.x, topPoint.y);
+        overlayCtx.lineTo(baseLeft.x, baseLeft.y);
+        overlayCtx.lineTo(baseRight.x, baseRight.y);
         overlayCtx.closePath();
         overlayCtx.fill();
-
-        // Draw arrow outline
-        overlayCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-        overlayCtx.lineWidth = 2 * invScale;
         overlayCtx.stroke();
-
-        // Add "UP" text
-        overlayCtx.font = `bold ${9 * invScale}px "Segoe UI", sans-serif`;
-        overlayCtx.textAlign = 'center';
-        overlayCtx.textBaseline = 'middle';
-        overlayCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        overlayCtx.fillText('UP', 0, arrowSize * 0.7);
-
-        overlayCtx.restore();
       }
       overlayCtx.restore();
     }
