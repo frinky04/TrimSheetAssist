@@ -1692,10 +1692,11 @@
     function handleWheelZoom(event) {
       if (!sourcePixels) return;
       event.preventDefault();
-      const step = event.deltaY > 0 ? -0.2 : 0.2;
+      // Use multiplicative zoom for consistent feel at all zoom levels
+      const factor = event.deltaY > 0 ? 0.9 : 1.1;
       const coord = getSourceCoordsFromEvent(event);
       const anchor = coord ? { x: coord.x, y: coord.y } : { x: sourceSize.w / 2, y: sourceSize.h / 2 };
-      applyZoom(viewScale + step, anchor);
+      applyZoom(viewScale * factor, anchor);
     }
 
     function updateZoomLabel() {
@@ -1709,10 +1710,7 @@
       // Show "next corner" indicator if less than 4 corners
       if (corners.length < 4 && sourcePixels) {
         const cornerNames = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
-        overlayCtx.fillStyle = 'rgba(100, 200, 255, 0.15)';
-        overlayCtx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-        overlayCtx.fillStyle = '#64c8ff';
+        overlayCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         overlayCtx.font = 'bold 16px "Trebuchet MS", "Segoe UI", sans-serif';
         overlayCtx.textAlign = 'center';
         overlayCtx.textBaseline = 'middle';
@@ -1732,89 +1730,127 @@
       overlayCtx.save();
       overlayCtx.setTransform(scale, 0, 0, scale, viewOffset.x, viewOffset.y);
 
-      // Corner colors: green, blue, orange, red
-      const cornerColors = [
-        { stroke: '#4ade80', fill: 'rgba(74, 222, 128, 0.3)', label: '#4ade80' },  // green
-        { stroke: '#60a5fa', fill: 'rgba(96, 165, 250, 0.3)', label: '#60a5fa' },  // blue
-        { stroke: '#fb923c', fill: 'rgba(251, 146, 60, 0.3)', label: '#fb923c' },  // orange
-        { stroke: '#f87171', fill: 'rgba(248, 113, 113, 0.3)', label: '#f87171' }  // red
-      ];
-
-      // Draw connecting lines between corners with gradient
+      // Draw solid connecting lines between corners
       if (corners.length > 1) {
+        overlayCtx.strokeStyle = 'rgba(255, 105, 180, 0.8)';
+        overlayCtx.lineWidth = 1.5 * invScale;
+        overlayCtx.beginPath();
         for (let i = 0; i < corners.length; i++) {
           const nextIdx = (i + 1) % corners.length;
-          if (nextIdx === 0 && corners.length < 4) break; // Don't close if not all 4 corners
-
+          if (nextIdx === 0 && corners.length < 4) break;
           const p1 = corners[i];
           const p2 = corners[nextIdx];
-
-          overlayCtx.strokeStyle = cornerColors[i].stroke;
-          overlayCtx.lineWidth = 3 * invScale;
-          overlayCtx.setLineDash([8 * invScale, 4 * invScale]);
-          overlayCtx.beginPath();
           overlayCtx.moveTo(p1.x, p1.y);
           overlayCtx.lineTo(p2.x, p2.y);
+        }
+        overlayCtx.stroke();
+      }
+
+      // Draw perspective grid when all 4 corners are placed
+      if (corners.length === 4) {
+        const gridDivisions = 4; // 4x4 grid
+        overlayCtx.strokeStyle = 'rgba(255, 105, 180, 0.8)';
+        overlayCtx.lineWidth = 1.5 * invScale;
+
+        // Helper function to interpolate between two points
+        const lerp = (p1, p2, t) => ({
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        });
+
+        // Draw horizontal grid lines
+        for (let i = 1; i < gridDivisions; i++) {
+          const t = i / gridDivisions;
+          // Left edge point
+          const left = lerp(corners[0], corners[3], t);
+          // Right edge point
+          const right = lerp(corners[1], corners[2], t);
+          // Draw line between them
+          overlayCtx.beginPath();
+          overlayCtx.moveTo(left.x, left.y);
+          overlayCtx.lineTo(right.x, right.y);
           overlayCtx.stroke();
-          overlayCtx.setLineDash([]);
+        }
+
+        // Draw vertical grid lines
+        for (let i = 1; i < gridDivisions; i++) {
+          const t = i / gridDivisions;
+          // Top edge point
+          const top = lerp(corners[0], corners[1], t);
+          // Bottom edge point
+          const bottom = lerp(corners[3], corners[2], t);
+          // Draw line between them
+          overlayCtx.beginPath();
+          overlayCtx.moveTo(top.x, top.y);
+          overlayCtx.lineTo(bottom.x, bottom.y);
+          overlayCtx.stroke();
         }
       }
 
-      // Fill the quad if all 4 corners are placed
-      if (corners.length === 4) {
-        overlayCtx.fillStyle = 'rgba(100, 200, 255, 0.08)';
-        overlayCtx.beginPath();
-        corners.forEach((p, idx) => {
-          if (idx === 0) overlayCtx.moveTo(p.x, p.y);
-          else overlayCtx.lineTo(p.x, p.y);
-        });
-        overlayCtx.closePath();
-        overlayCtx.fill();
-      }
-
-      // Draw corner handles with color coding
+      // Draw subtle corner handles
       corners.forEach((p, idx) => {
         const sx = p.x;
         const sy = p.y;
-        const color = cornerColors[idx];
 
-        // Outer glow
+        // Small circle with minimal visual footprint
         overlayCtx.beginPath();
-        overlayCtx.arc(sx, sy, 12 * invScale, 0, Math.PI * 2);
-        overlayCtx.fillStyle = color.fill;
+        overlayCtx.arc(sx, sy, 5 * invScale, 0, Math.PI * 2);
+        overlayCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         overlayCtx.fill();
-
-        // Main circle
-        overlayCtx.beginPath();
-        overlayCtx.arc(sx, sy, 8 * invScale, 0, Math.PI * 2);
-        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        overlayCtx.fill();
-        overlayCtx.strokeStyle = color.stroke;
-        overlayCtx.lineWidth = 3 * invScale;
+        overlayCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        overlayCtx.lineWidth = 1.5 * invScale;
         overlayCtx.stroke();
 
-        // Corner number label with background
-        overlayCtx.font = `bold ${18 * invScale}px "Trebuchet MS", "Segoe UI", sans-serif`;
+        // Minimal corner number
+        overlayCtx.font = `bold ${10 * invScale}px "Segoe UI", sans-serif`;
         overlayCtx.textAlign = 'center';
         overlayCtx.textBaseline = 'middle';
-
-        // Label background
-        const labelX = sx + 20 * invScale;
-        const labelY = sy - 20 * invScale;
-        const boxSize = 24 * invScale;
-        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        overlayCtx.fillRect(labelX - boxSize / 2, labelY - boxSize / 2, boxSize, boxSize);
-        overlayCtx.strokeStyle = color.stroke;
-        overlayCtx.lineWidth = 2 * invScale;
-        overlayCtx.strokeRect(labelX - boxSize / 2, labelY - boxSize / 2, boxSize, boxSize);
-
-        // Label text
-        overlayCtx.fillStyle = color.label;
-        overlayCtx.fillText(String(idx + 1), labelX, labelY);
-
+        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        overlayCtx.fillText(String(idx + 1), sx, sy);
         overlayCtx.textAlign = 'start';
         overlayCtx.textBaseline = 'alphabetic';
       });
+
+      // Draw "UP" arrow in center of quad when all 4 corners are placed
+      if (corners.length === 4) {
+        // Calculate center of quad
+        const centerX = (corners[0].x + corners[1].x + corners[2].x + corners[3].x) / 4;
+        const centerY = (corners[0].y + corners[1].y + corners[2].y + corners[3].y) / 4;
+        const arrowSize = 20 * invScale;
+
+        // Arrow pointing up
+        overlayCtx.save();
+        overlayCtx.translate(centerX, centerY);
+
+        // Calculate rotation based on top edge (corners 0 to 1)
+        const dx = corners[1].x - corners[0].x;
+        const dy = corners[1].y - corners[0].y;
+        const angle = Math.atan2(dy, dx) - Math.PI / 2;
+        overlayCtx.rotate(angle);
+
+        // Draw arrow background
+        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(0, -arrowSize);
+        overlayCtx.lineTo(-arrowSize * 0.5, arrowSize * 0.3);
+        overlayCtx.lineTo(arrowSize * 0.5, arrowSize * 0.3);
+        overlayCtx.closePath();
+        overlayCtx.fill();
+
+        // Draw arrow outline
+        overlayCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+        overlayCtx.lineWidth = 2 * invScale;
+        overlayCtx.stroke();
+
+        // Add "UP" text
+        overlayCtx.font = `bold ${9 * invScale}px "Segoe UI", sans-serif`;
+        overlayCtx.textAlign = 'center';
+        overlayCtx.textBaseline = 'middle';
+        overlayCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        overlayCtx.fillText('UP', 0, arrowSize * 0.7);
+
+        overlayCtx.restore();
+      }
       overlayCtx.restore();
     }
 
