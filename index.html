@@ -1529,7 +1529,8 @@
       const hitIdx = findCornerHit(coord.displayX, coord.displayY);
       if (hitIdx !== -1) {
         draggingIdx = hitIdx;
-        corners[hitIdx] = { x: coord.x, y: coord.y };
+        // Round to nearest pixel for precise alignment
+        corners[hitIdx] = { x: Math.round(coord.x), y: Math.round(coord.y) };
         drawOverlay();
         if (corners.length === 4) updatePreview();
         return;
@@ -1537,7 +1538,8 @@
 
       if (corners.length < 4) {
         const cornerNames = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
-        corners.push({ x: coord.x, y: coord.y });
+        // Round to nearest pixel for precise alignment
+        corners.push({ x: Math.round(coord.x), y: Math.round(coord.y) });
         drawOverlay();
 
         if (corners.length === 4) {
@@ -1604,7 +1606,8 @@
       }
 
       if (draggingIdx === null || !sourcePixels) return;
-      corners[draggingIdx] = { x: coord.x, y: coord.y };
+      // Round to nearest pixel for precise alignment
+      corners[draggingIdx] = { x: Math.round(coord.x), y: Math.round(coord.y) };
       drawOverlay();
       if (corners.length === 4) updatePreview();
     }
@@ -2380,16 +2383,16 @@
     function getSourceCoordsFromEvent(event) {
       if (!sourceSize.w || !sourceSize.h) return null;
       const rect = overlayCanvas.getBoundingClientRect();
-      const scaleX = overlayCanvas.width / rect.width;
-      const scaleY = overlayCanvas.height / rect.height;
-      const displayX = (event.clientX - rect.left) * scaleX;
-      const displayY = (event.clientY - rect.top) * scaleY;
+      // Convert from page coordinates to canvas pixel coordinates
+      const canvasX = ((event.clientX - rect.left) / rect.width) * overlayCanvas.width;
+      const canvasY = ((event.clientY - rect.top) / rect.height) * overlayCanvas.height;
       const displayScale = getDisplayScale();
-      let x = (displayX - viewOffset.x) / displayScale;
-      let y = (displayY - viewOffset.y) / displayScale;
+      // Convert from canvas display coordinates to source image coordinates
+      let x = (canvasX - viewOffset.x) / displayScale;
+      let y = (canvasY - viewOffset.y) / displayScale;
       x = Math.max(0, Math.min(sourceSize.w - 1, x));
       y = Math.max(0, Math.min(sourceSize.h - 1, y));
-      return { x, y, displayX, displayY };
+      return { x, y, displayX: canvasX, displayY: canvasY };
     }
 
     function findCornerHit(displayX, displayY) {
